@@ -10,7 +10,8 @@
     "docs"
   ],
   "bin": {
-    "transform-files": "dist/transform-files-bin.mjs"
+    "transform-files": "dist/transform-files-bin.mjs",
+    "transform-code": "dist/transform-code-bin.mjs"
   },
   "scripts": {
     "build": "tsup-node",

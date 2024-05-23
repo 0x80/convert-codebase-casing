@@ -4,6 +4,7 @@ export default defineConfig({
   entry: {
     index: "src/index.ts",
     "transform-files-bin": "src/transform-files-bin.ts",
+    "transform-code-bin": "src/transform-code-bin.ts",
   },
   format: ["esm"],
   target: "node18",
