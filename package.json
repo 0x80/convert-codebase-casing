@@ -14,7 +14,7 @@
     "transform-code": "dist/transform-code-bin.mjs"
   },
   "scripts": {
-    "build": "tsup-node && cp src/codemods/* dist/codemods",
+    "build": "tsup-node",
     "dev": "tsup-node --watch",
     "test": "vitest",
     "format": "prettier --write .",
