@@ -14,7 +14,7 @@
     "transform-code": "dist/transform-code-bin.mjs"
   },
   "scripts": {
-    "build": "tsup-node",
+    "build": "tsup-node && cp src/codemods/* dist/codemods",
     "dev": "tsup-node --watch",
     "test": "vitest",
     "format": "prettier --write .",
@@ -44,12 +44,19 @@
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.6",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-syntax-jsx": "^7.24.6",
+    "@babel/plugin-syntax-typescript": "^7.24.6",
+    "@types/babel__core": "^7.20.5",
     "@types/fs-extra": "^11.0.4",
+    "@types/jscodeshift": "^0.11.11",
     "@types/meow": "^6.0.0",
     "@types/node": "^20.12.2",
     "@types/source-map-support": "^0.5.10",
     "eslint": "^8",
     "eslint-config-0x80": "^0.0.0",
+    "jscodeshift": "^0.15.2",
     "prettier": "^3.2.5",
     "prettier-plugin-jsdoc": "^1.3.0",
     "tsup": "^8.0.2",

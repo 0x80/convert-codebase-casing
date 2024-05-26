@@ -2,20 +2,23 @@
 import console from "node:console";
 import sourceMaps from "source-map-support";
 import meow from "meow";
-import { processFilesRecursively } from "./lib/transform-code";
+import Runner from "jscodeshift/src/Runner.js";
+import { listFiles } from "./lib/list-files";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 sourceMaps.install();
 
 const cli = meow(
   `
   Usage
-    $ tsx script.ts <directory>
+    $ npx transform-code <directory>
 
   Options
     --help, -h  Show help text
 
   Examples
-    $ tsx script.ts ./src
+    $ npx transform-code ./src
 `,
   {
     importMeta: import.meta,
@@ -36,7 +39,22 @@ async function run() {
     process.exit(1);
   }
 
-  await processFilesRecursively(directoryPath);
+  const inputFiles = await listFiles(directoryPath, [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+  ]);
+
+  // Derive the absolute path to the codemod
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const codemodPath = path.resolve(
+    __dirname,
+    "./codemods/transform-import-export.cjs"
+  );
+
+  await Runner.run(codemodPath, inputFiles, {});
 }
 
 run().catch((err) => {

@@ -9,13 +9,13 @@ sourceMaps.install();
 const cli = meow(
   `
   Usage
-    $ tsx script.ts <directory>
+    $ npx transform-files <directory>
 
   Options
     --help, -h  Show help text
 
   Examples
-    $ tsx script.ts ./src
+    $ npx transform-files ./src
 `,
   {
     importMeta: import.meta,
