@@ -1,10 +1,8 @@
 {
   "name": "transform-file-casing",
   "version": "0.0.0",
-  "description": "Transform all file-casing in an entire code repository",
+  "description": "Transform an entire JS/TS codebase to kebab-case",
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "exports": "./dist/index.mjs",
   "files": [
     "dist",
     "docs"
@@ -27,12 +25,14 @@
   "license": "MIT",
   "keywords": [
     "transform",
-    "file",
+    "files",
     "casing",
-    "rename",
     "case",
+    "rename",
     "typescript",
-    "javascript"
+    "javascript",
+    "camel-case",
+    "kebab-case"
   ],
   "dependencies": {
     "chalk": "^5.3.0",

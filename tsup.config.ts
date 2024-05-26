@@ -2,7 +2,6 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
-    index: "src/index.ts",
     "codemods/transform-import-export":
       "src/codemods/transform-import-export.ts",
     "transform-files-bin": "src/transform-files-bin.ts",
@@ -11,11 +10,7 @@ export default defineConfig({
   format: ["esm", "cjs"],
   target: "node18",
   shims: true,
-  // sourcemap: true,
-  // bundle: false,
-  // dts: true,
   clean: true,
-  // shims: true, // replaces use of import.meta
   /**
    * The bin files are ES modules. The file is required to have the `.mjs` file
    * extension, otherwise a non-ESM workspace will try to execute it as
