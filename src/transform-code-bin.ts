@@ -2,10 +2,7 @@
 import console from "node:console";
 import sourceMaps from "source-map-support";
 import meow from "meow";
-import Runner from "jscodeshift/src/Runner.js";
-import { listFiles } from "./lib/list-files";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { transformCode } from "./lib/transform-code";
 
 sourceMaps.install();
 
@@ -39,22 +36,7 @@ async function run() {
     process.exit(1);
   }
 
-  const inputFiles = await listFiles(directoryPath, [
-    ".ts",
-    ".tsx",
-    ".js",
-    ".jsx",
-  ]);
-
-  // Derive the absolute path to the codemod
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const codemodPath = path.resolve(
-    __dirname,
-    "./codemods/transform-import-export.cjs"
-  );
-
-  await Runner.run(codemodPath, inputFiles, {});
+  await transformCode(directoryPath);
 }
 
 run().catch((err) => {

@@ -1,8 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import simpleGit from "simple-git";
-
-const git = simpleGit();
+import { commitChanges } from "./commit-changes";
 
 const extensions = [".ts", ".tsx", ".js", ".jsx"];
 
@@ -137,16 +135,6 @@ function kebabCase(str: string): string {
     .replace(/([a-z])([A-Z])/g, "$1-$2")
     .replace(/[\s_]+/g, "-")
     .toLowerCase();
-}
-
-/**
- * Commits changes to the Git repository with the specified message.
- *
- * @param message - The commit message.
- */
-async function commitChanges(message: string) {
-  await git.add("./*");
-  await git.commit(message);
 }
 
 /** Main function to orchestrate the renaming process. */
