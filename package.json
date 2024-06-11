@@ -1,16 +1,13 @@
 {
-  "name": "transform-file-casing",
+  "name": "transform-codebase-casing",
   "version": "0.0.0",
-  "description": "Transform an entire JS/TS codebase to kebab-case",
+  "description": "Transform an entire JS/TS codebase to either kebab-case or snake-case",
   "type": "module",
   "files": [
     "dist",
     "docs"
   ],
-  "bin": {
-    "transform-files": "dist/transform-files-bin.mjs",
-    "transform-code": "dist/transform-code-bin.mjs"
-  },
+  "bin": "dist/transform-bin.mjs",
   "scripts": {
     "build": "tsup-node",
     "dev": "tsup-node --watch",
@@ -32,7 +29,8 @@
     "typescript",
     "javascript",
     "camel-case",
-    "kebab-case"
+    "kebab-case",
+    "snake-case"
   ],
   "dependencies": {
     "chalk": "^5.3.0",

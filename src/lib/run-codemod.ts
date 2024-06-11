@@ -2,9 +2,8 @@ import Runner from "jscodeshift/src/Runner.js";
 import { listFiles } from "./list-files";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { commitChanges } from "./commit-changes";
 
-export async function transformCode(directoryPath: string) {
+export async function runCodemod(directoryPath: string) {
   const inputFiles = await listFiles(directoryPath, [
     ".ts",
     ".tsx",
@@ -21,6 +20,4 @@ export async function transformCode(directoryPath: string) {
   );
 
   await Runner.run(codemodPath, inputFiles, {});
-
-  await commitChanges("Transform import and export paths");
 }

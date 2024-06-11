@@ -1,8 +1,8 @@
 import fs from "fs-extra";
 import path from "path";
-import { commitChanges } from "./commit-changes";
+import { targetFileExtensions } from "./config";
 
-const extensions = [".ts", ".tsx", ".js", ".jsx"];
+const tempSuffix = "__tmp";
 
 /**
  * Recursively renames files and folders in the specified directory based on the
@@ -11,9 +11,10 @@ const extensions = [".ts", ".tsx", ".js", ".jsx"];
  * @param directoryPath - The path of the directory to process.
  * @param phase - The phase of renaming ('phase1' or 'phase2').
  */
-async function renameFilesAndFoldersRecursively(
+export async function renameFilesAndFolders(
   directoryPath: string,
-  phase: "phase1" | "phase2"
+  phase: "phase1" | "phase2",
+  transformFn: (str: string) => string
 ) {
   const items = await fs.readdir(directoryPath);
 
@@ -22,15 +23,15 @@ async function renameFilesAndFoldersRecursively(
     const stat = await fs.stat(itemPath);
 
     if (stat.isDirectory()) {
-      await renameFilesAndFoldersRecursively(itemPath, phase);
+      await renameFilesAndFolders(itemPath, phase, transformFn);
       if (phase === "phase1") {
-        await renameFolderPhase1(itemPath);
+        await renameFolderPhase1(itemPath, transformFn);
       } else if (phase === "phase2") {
         await renameFolderPhase2(itemPath);
       }
-    } else if (extensions.some((ext) => item.endsWith(ext))) {
+    } else if (targetFileExtensions.some((ext) => item.endsWith(ext))) {
       if (phase === "phase1") {
-        await renameFilePhase1(itemPath);
+        await renameFilePhase1(itemPath, transformFn);
       } else if (phase === "phase2") {
         await renameFilePhase2(itemPath);
       }
@@ -43,13 +44,16 @@ async function renameFilesAndFoldersRecursively(
  *
  * @param filePath - The path of the file to rename.
  */
-async function renameFilePhase1(filePath: string) {
+async function renameFilePhase1(
+  filePath: string,
+  transformFn: (str: string) => string
+) {
   const dir = path.dirname(filePath);
   const ext = path.extname(filePath);
   const baseName = path.basename(filePath, ext);
 
   if (/[A-Z]/.test(baseName)) {
-    const newFileName = kebabCase(baseName) + ext;
+    const newFileName = transformFn(baseName) + ext;
     const caseInsensitiveNewFileName = newFileName.toLowerCase();
 
     console.log(newFileName);
@@ -57,7 +61,10 @@ async function renameFilePhase1(filePath: string) {
     if (
       baseName.toLowerCase() === caseInsensitiveNewFileName.replace(ext, "")
     ) {
-      const newFilePath = path.join(dir, kebabCase(baseName) + "_" + ext);
+      const newFilePath = path.join(
+        dir,
+        transformFn(baseName) + tempSuffix + ext
+      );
       await fs.rename(filePath, newFilePath);
     } else {
       const newFilePath = path.join(dir, newFileName);
@@ -76,7 +83,7 @@ async function renameFilePhase2(filePath: string) {
   const ext = path.extname(filePath);
   const baseName = path.basename(filePath, ext);
 
-  if (baseName.endsWith("_")) {
+  if (baseName.endsWith(tempSuffix)) {
     const newFileName = baseName.slice(0, -1) + ext;
     console.log(newFileName);
 
@@ -90,16 +97,19 @@ async function renameFilePhase2(filePath: string) {
  *
  * @param folderPath - The path of the folder to rename.
  */
-async function renameFolderPhase1(folderPath: string) {
+async function renameFolderPhase1(
+  folderPath: string,
+  transformFn: (str: string) => string
+) {
   const dir = path.dirname(folderPath);
   const baseName = path.basename(folderPath);
 
   if (/[A-Z]/.test(baseName)) {
-    const newFolderName = kebabCase(baseName);
+    const newFolderName = transformFn(baseName);
     const caseInsensitiveNewFolderName = newFolderName.toLowerCase();
 
     if (baseName.toLowerCase() === caseInsensitiveNewFolderName) {
-      const newFolderPath = path.join(dir, kebabCase(baseName) + "_");
+      const newFolderPath = path.join(dir, transformFn(baseName) + tempSuffix);
       await fs.rename(folderPath, newFolderPath);
     } else {
       const newFolderPath = path.join(dir, newFolderName);
@@ -117,37 +127,9 @@ async function renameFolderPhase2(folderPath: string) {
   const dir = path.dirname(folderPath);
   const baseName = path.basename(folderPath);
 
-  if (baseName.endsWith("_")) {
+  if (baseName.endsWith(tempSuffix)) {
     const newFolderName = baseName.slice(0, -1);
     const newFolderPath = path.join(dir, newFolderName);
     await fs.rename(folderPath, newFolderPath);
   }
-}
-
-/**
- * Converts a string to kebab-case.
- *
- * @param str - The string to convert.
- * @returns The kebab-case version of the string.
- */
-function kebabCase(str: string): string {
-  return str
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/[\s_]+/g, "-")
-    .toLowerCase();
-}
-
-/** Main function to orchestrate the renaming process. */
-export async function transformFiles(directoryPath: string) {
-  console.log("Starting Phase 1...");
-  await renameFilesAndFoldersRecursively(directoryPath, "phase1");
-  await commitChanges("Rename files and folders to kebab-case");
-  console.log("Phase 1 completed and changes committed.");
-
-  console.log("Starting Phase 2...");
-  await renameFilesAndFoldersRecursively(directoryPath, "phase2");
-  await commitChanges(
-    "Remove underscore suffix from filenames and folder names"
-  );
-  console.log("Phase 2 completed and changes committed.");
 }

@@ -1,6 +1,8 @@
 import path from "node:path";
 import { parseSync } from "@babel/core";
 import type { API, FileInfo } from "jscodeshift";
+import type { ACTUAL_ANY } from "../lib/types";
+import { targetPathPrefixes } from "../lib/config";
 
 // Helper function to convert a string to kebab-case
 function kebabCase(str: string): string {
@@ -39,10 +41,10 @@ export default function (fileInfo: FileInfo, api: API) {
   });
 
   // Function to update the source value of import/export declarations
-  function updateSourceValue(node: any) {
+  function updateSourceValue(node: ACTUAL_ANY) {
     const currentSourceValue = node.source.value;
     if (
-      /^(?:\.\.?\/|~\/)/.test(currentSourceValue) &&
+      targetPathPrefixes.some((str) => currentSourceValue.startsWith(str)) &&
       /[A-Z]/.test(currentSourceValue) // Check if there's any uppercase letter
     ) {
       node.source.value = transformPath(currentSourceValue);
