@@ -28,11 +28,6 @@ this.
 
 This transform was designed to make the file-casing change trivial.
 
-# Known issues
-
-- [ ] Should not transform variables in Next.js page files
-- [ ] Misses dynamic imports
-
 # Usage
 
 Without installing any dependencies, you can execute the transform from the root
@@ -50,6 +45,13 @@ After it is finished there should be 3 Git commits added to your current branch.
 It could be that the transform missed some cases, so at this point you will have
 to check if things still compile and run, and possibly fix a few things
 manually.
+
+# Known issues
+
+## Next.js page variables in paths
+
+The transform currently also mutates variables in Next.js page file paths, which
+it shouldn't. So you'll have to manually correct these.
 
 # How it works
 
