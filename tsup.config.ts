@@ -4,8 +4,7 @@ export default defineConfig({
   entry: {
     "codemods/transform-import-export":
       "src/codemods/transform-import-export.ts",
-    "transform-files-bin": "src/transform-files-bin.ts",
-    "transform-code-bin": "src/transform-code-bin.ts",
+    "transform-bin": "src/transform-bin.ts",
   },
   format: ["esm", "cjs"],
   target: "node18",

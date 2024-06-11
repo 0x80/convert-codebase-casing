@@ -1,5 +1,4 @@
 import path from "node:path";
-import { parseSync } from "@babel/core";
 import type { API, FileInfo } from "jscodeshift";
 import type { ACTUAL_ANY } from "../lib/types";
 import { targetPathPrefixes } from "../lib/config";
@@ -18,27 +17,8 @@ function transformPath(filePath: string): string {
   return `${dir}/${base}`;
 }
 
-export default function (fileInfo: FileInfo, api: API) {
-  const j = api.jscodeshift.withParser({
-    // @ts-expect-error wut
-    parse: (source: string) =>
-      parseSync(source, {
-        plugins: [
-          "@babel/plugin-syntax-jsx",
-          "@babel/plugin-proposal-class-properties",
-        ],
-        overrides: [
-          {
-            test: ["**/*.ts", "**/*.tsx"],
-            plugins: [["@babel/plugin-syntax-typescript", { isTSX: true }]],
-          },
-        ],
-        filename: "source-file.tsx",
-        parserOpts: {
-          tokens: true,
-        },
-      }),
-  });
+export default function transformer(fileInfo: FileInfo, api: API) {
+  const j = api.jscodeshift;
 
   // Function to update the source value of import/export declarations
   function updateSourceValue(node: ACTUAL_ANY) {

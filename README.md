@@ -28,6 +28,11 @@ this.
 
 This transform was designed to make the file-casing change trivial.
 
+# Known issues
+
+- [ ] Should not transform variables in Next.js page files
+- [ ] Misses dynamic imports
+
 # Usage
 
 Without installing any dependencies, you can execute the transform from the root

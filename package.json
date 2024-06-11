@@ -7,7 +7,9 @@
     "dist",
     "docs"
   ],
-  "bin": "dist/transform-bin.mjs",
+  "bin": {
+    "transform-codebase-casing": "dist/transform-bin.mjs"
+  },
   "scripts": {
     "build": "tsup-node",
     "dev": "tsup-node --watch",
@@ -37,27 +39,27 @@
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12",
     "meow": "^13.2.0",
-    "remeda": "^1.56.0",
-    "simple-git": "^3.24.0",
+    "remeda": "^2.0.9",
+    "simple-git": "^3.25.0",
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
-    "@babel/core": "^7.24.6",
+    "@babel/core": "^7.24.7",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/plugin-syntax-jsx": "^7.24.6",
-    "@babel/plugin-syntax-typescript": "^7.24.6",
+    "@babel/plugin-syntax-jsx": "^7.24.7",
+    "@babel/plugin-syntax-typescript": "^7.24.7",
     "@types/babel__core": "^7.20.5",
     "@types/fs-extra": "^11.0.4",
     "@types/jscodeshift": "^0.11.11",
     "@types/meow": "^6.0.0",
-    "@types/node": "^20.12.2",
+    "@types/node": "^20.14.2",
     "@types/source-map-support": "^0.5.10",
     "eslint": "^8",
     "eslint-config-0x80": "^0.0.0",
     "jscodeshift": "^0.15.2",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "prettier-plugin-jsdoc": "^1.3.0",
-    "tsup": "^8.0.2",
+    "tsup": "^8.1.0",
     "typescript": "^5.4.3",
     "vitest": "^1.4.0"
   },

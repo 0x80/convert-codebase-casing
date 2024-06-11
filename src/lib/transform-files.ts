@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { targetFileExtensions } from "./config";
+import { ignoredDirectories, targetFileExtensions } from "./config";
 
 const tempSuffix = "__tmp";
 
@@ -21,6 +21,10 @@ export async function renameFilesAndFolders(
   for (const item of items) {
     const itemPath = path.join(directoryPath, item);
     const stat = await fs.stat(itemPath);
+
+    if (ignoredDirectories.has(itemPath)) {
+      continue;
+    }
 
     if (stat.isDirectory()) {
       await renameFilesAndFolders(itemPath, phase, transformFn);
@@ -84,7 +88,7 @@ async function renameFilePhase2(filePath: string) {
   const baseName = path.basename(filePath, ext);
 
   if (baseName.endsWith(tempSuffix)) {
-    const newFileName = baseName.slice(0, -1) + ext;
+    const newFileName = removeSuffix(baseName) + ext;
     console.log(newFileName);
 
     const newFilePath = path.join(dir, newFileName);
@@ -128,8 +132,14 @@ async function renameFolderPhase2(folderPath: string) {
   const baseName = path.basename(folderPath);
 
   if (baseName.endsWith(tempSuffix)) {
-    const newFolderName = baseName.slice(0, -1);
-    const newFolderPath = path.join(dir, newFolderName);
+    const newFolderPath = path.join(dir, removeSuffix(baseName));
     await fs.rename(folderPath, newFolderPath);
   }
+}
+
+function removeSuffix(baseName: string) {
+  if (baseName.endsWith(tempSuffix)) {
+    return baseName.slice(0, -tempSuffix.length);
+  }
+  return baseName;
 }

@@ -19,5 +19,8 @@ export async function runCodemod(directoryPath: string) {
     "./codemods/transform-import-export.cjs"
   );
 
-  await Runner.run(codemodPath, inputFiles, {});
+  await Runner.run(codemodPath, inputFiles, {
+    extensions: "ts,tsx,js,jsx",
+    parser: "tsx",
+  });
 }

@@ -2,23 +2,23 @@
 import console from "node:console";
 import sourceMaps from "source-map-support";
 import meow from "meow";
-import { renameFilesAndFolders } from "./lib/transform-files";
 import { commitChanges } from "./lib/commit-changes";
-import { getCasingTransform } from "./lib/get-casing-transform";
 import { runCodemod } from "./lib/run-codemod";
+import { getCasingTransform } from "./lib/get-casing-transform";
+import { renameFilesAndFolders } from "./lib/transform-files";
 
 sourceMaps.install();
 
 const cli = meow(
   `
   Usage
-    $ npx transform-files <directory>
+    $ npx transform-codebase-casing <directory>
 
   Options
     --help, -h  Show help text
 
   Examples
-    $ npx transform-files ./src
+    $ npx transform-codebase-casing ./src
 `,
   {
     importMeta: import.meta,
