@@ -2,8 +2,10 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
-    "codemods/transform-import-export":
-      "src/codemods/transform-import-export.ts",
+    "codemods/transform-import-export-kebab":
+      "src/codemods/transform-import-export-kebab.ts",
+    "codemods/transform-import-export-snake":
+      "src/codemods/transform-import-export-snake.ts",
     "transform-bin": "src/transform-bin.ts",
   },
   format: ["esm", "cjs"],

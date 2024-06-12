@@ -46,12 +46,12 @@ It could be that the transform missed some cases, so at this point you will have
 to check if things still compile and run, and possibly fix a few things
 manually.
 
-# Known issues
+# TODO
 
-## Next.js page variables in paths
-
-The transform currently also mutates variables in Next.js page file paths, which
-it shouldn't. So you'll have to manually correct these.
+- [] Next.js page variables in paths. The transform currently also mutates
+  variables in Next.js page file paths, which it shouldn't. So you'll have to
+  manually correct these.
+- [] Try out snake case
 
 # How it works
 

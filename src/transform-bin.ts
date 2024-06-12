@@ -2,10 +2,10 @@
 import console from "node:console";
 import sourceMaps from "source-map-support";
 import meow from "meow";
-import { commitChanges } from "./lib/commit-changes";
-import { runCodemod } from "./lib/run-codemod";
 import { getCasingTransform } from "./lib/get-casing-transform";
 import { renameFilesAndFolders } from "./lib/transform-files";
+import { commitChanges } from "./lib/commit-changes";
+import { runCodemod } from "./lib/run-codemod";
 
 sourceMaps.install();
 
@@ -45,7 +45,9 @@ async function run() {
     process.exit(1);
   }
 
-  const transformFn = getCasingTransform("kebab");
+  const transformType = "snake";
+
+  const transformFn = getCasingTransform(transformType);
 
   console.log("Rename phase 1/2...");
   await renameFilesAndFolders(directoryPath, "phase1", transformFn);
@@ -61,7 +63,7 @@ async function run() {
 
   console.log("Transform import and export paths...");
 
-  await runCodemod(directoryPath);
+  await runCodemod(directoryPath, transformType);
 
   await commitChanges("Commit changes");
   console.log("🦄");

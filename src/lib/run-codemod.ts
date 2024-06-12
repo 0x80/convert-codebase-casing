@@ -3,7 +3,10 @@ import { listFiles } from "./list-files";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export async function runCodemod(directoryPath: string) {
+export async function runCodemod(
+  directoryPath: string,
+  casingType: "kebab" | "snake"
+) {
   const inputFiles = await listFiles(directoryPath, [
     ".ts",
     ".tsx",
@@ -16,7 +19,9 @@ export async function runCodemod(directoryPath: string) {
   const __dirname = path.dirname(__filename);
   const codemodPath = path.resolve(
     __dirname,
-    "./codemods/transform-import-export.cjs"
+    casingType === "kebab"
+      ? "./codemods/transform-import-export-kebab.cjs"
+      : "./codemods/transform-import-export-snake.cjs"
   );
 
   await Runner.run(codemodPath, inputFiles, {

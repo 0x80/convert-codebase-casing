@@ -97,28 +97,35 @@ async function renameFilePhase2(filePath: string) {
 }
 
 /**
- * Renames a folder to kebab-case and adds an underscore suffix if necessary.
+ * Renames a folder by segment to kebab-case and adds an underscore suffix if
+ * necessary, keeping original names for segments starting with `[`.
  *
  * @param folderPath - The path of the folder to rename.
+ * @param transformFn - The transformation function to apply to each segment.
  */
 async function renameFolderPhase1(
   folderPath: string,
   transformFn: (str: string) => string
 ) {
-  const dir = path.dirname(folderPath);
-  const baseName = path.basename(folderPath);
-
-  if (/[A-Z]/.test(baseName)) {
-    const newFolderName = transformFn(baseName);
-    const caseInsensitiveNewFolderName = newFolderName.toLowerCase();
-
-    if (baseName.toLowerCase() === caseInsensitiveNewFolderName) {
-      const newFolderPath = path.join(dir, transformFn(baseName) + tempSuffix);
-      await fs.rename(folderPath, newFolderPath);
-    } else {
-      const newFolderPath = path.join(dir, newFolderName);
-      await fs.rename(folderPath, newFolderPath);
+  const segments = folderPath.split(path.sep);
+  const transformedSegments = segments.map((segment) => {
+    if (segment.startsWith("[")) {
+      console.log("preserve segment", segment);
+      return segment; // Keep original for segments starting with `[`
     }
+
+    const transformed = transformFn(segment);
+    return /[A-Z]/.test(segment)
+      ? transformed.toLowerCase() === segment.toLowerCase()
+        ? transformed + tempSuffix
+        : transformed
+      : segment;
+  });
+
+  const newFolderPath = path.join(...transformedSegments);
+
+  if (newFolderPath !== folderPath) {
+    await fs.rename(folderPath, newFolderPath);
   }
 }
 
