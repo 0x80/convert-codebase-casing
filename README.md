@@ -48,10 +48,7 @@ manually.
 
 # TODO
 
-- [] Next.js page variables in paths. The transform currently also mutates
-  variables in Next.js page file paths, which it shouldn't. So you'll have to
-  manually correct these.
-- [] Try out snake case
+- [] Node modules in subfolders are still picked up as input files
 
 # How it works
 
