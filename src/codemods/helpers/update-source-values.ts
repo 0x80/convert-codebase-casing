@@ -1,6 +1,6 @@
 import path from "path";
-import { targetPathPrefixes } from "../lib/config";
-import type { ACTUAL_ANY } from "../lib/types";
+import { targetPathPrefixes } from "../../lib/config";
+import type { ACTUAL_ANY } from "../../lib/types";
 
 // Helper function to transform camelCase to kebab-case paths
 function transformPath(

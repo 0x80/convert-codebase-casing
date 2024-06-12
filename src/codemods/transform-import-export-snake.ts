@@ -1,5 +1,5 @@
 import type { API, FileInfo } from "jscodeshift";
-import { updateSourceValue } from "./update-source-values";
+import { updateSourceValue } from "./helpers/update-source-values";
 import { getCasingTransform } from "../lib/get-casing-transform";
 
 const transformFn = getCasingTransform("snake");
