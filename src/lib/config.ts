@@ -15,6 +15,7 @@ export const ignoredDirectories = new Set([
   ".git",
   ".github",
   ".next",
+  ".husky",
   ".vscode",
   ".turbo",
   "node_modules",

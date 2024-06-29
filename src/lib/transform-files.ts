@@ -4,27 +4,74 @@ import { ignoredDirectories, targetFileExtensions } from "./config";
 
 const tempSuffix = "__tmp";
 
+async function ensureAndRename(oldPath: string, newPath: string) {
+  await fs.ensureDir(path.dirname(newPath));
+  await fs.rename(oldPath, newPath);
+}
+
+async function removeEmptyFolders(dirPath: string) {
+  const items = await fs.readdir(dirPath);
+  for (const item of items) {
+    const fullPath = path.join(dirPath, item);
+    if ((await fs.stat(fullPath)).isDirectory()) {
+      await removeEmptyFolders(fullPath);
+    }
+  }
+  const updatedItems = await fs.readdir(dirPath);
+  if (updatedItems.length === 0) {
+    await fs.rmdir(dirPath);
+  }
+}
+
+function isIgnoredPath(itemPath: string): boolean {
+  const basename = path.basename(itemPath);
+
+  // if(basename === "."
+  // // Ignore any file or directory that starts with a dot
+  // if (basename.startsWith(".")) {
+  //   return true;
+  // }
+
+  return (
+    ignoredDirectories.has(basename) ||
+    Array.from(ignoredDirectories).some(
+      (dir) =>
+        itemPath.includes(`${path.sep}${dir}${path.sep}`) ||
+        itemPath.endsWith(`${path.sep}${dir}`)
+    )
+  );
+}
+
 /**
  * Recursively renames files and folders in the specified directory based on the
  * phase.
  *
  * @param directoryPath - The path of the directory to process.
  * @param phase - The phase of renaming ('phase1' or 'phase2').
+ * @param transformFn - The transformation function to apply to each segment.
  */
 export async function renameFilesAndFolders(
   directoryPath: string,
   phase: "phase1" | "phase2",
   transformFn: (str: string) => string
 ) {
+  if (isIgnoredPath(directoryPath)) {
+    console.log(`Ignoring path: ${directoryPath}`);
+    return;
+  }
+
+  console.log(`Processing path: ${directoryPath}`);
+
   const items = await fs.readdir(directoryPath);
 
   for (const item of items) {
     const itemPath = path.join(directoryPath, item);
-    const stat = await fs.stat(itemPath);
 
-    if (ignoredDirectories.has(itemPath)) {
+    if (isIgnoredPath(itemPath)) {
       continue;
     }
+
+    const stat = await fs.stat(itemPath);
 
     if (stat.isDirectory()) {
       await renameFilesAndFolders(itemPath, phase, transformFn);
@@ -41,6 +88,10 @@ export async function renameFilesAndFolders(
       }
     }
   }
+
+  if (phase === "phase2") {
+    await removeEmptyFolders(directoryPath);
+  }
 }
 
 /**
@@ -56,11 +107,13 @@ async function renameFilePhase1(
   const ext = path.extname(filePath);
   const baseName = path.basename(filePath, ext);
 
+  if (shouldPreserveName(baseName)) {
+    return;
+  }
+
   if (/[A-Z]/.test(baseName)) {
     const newFileName = transformFn(baseName) + ext;
     const caseInsensitiveNewFileName = newFileName.toLowerCase();
-
-    console.log(newFileName);
 
     if (
       baseName.toLowerCase() === caseInsensitiveNewFileName.replace(ext, "")
@@ -69,10 +122,10 @@ async function renameFilePhase1(
         dir,
         transformFn(baseName) + tempSuffix + ext
       );
-      await fs.rename(filePath, newFilePath);
+      await ensureAndRename(filePath, newFilePath);
     } else {
       const newFilePath = path.join(dir, newFileName);
-      await fs.rename(filePath, newFilePath);
+      await ensureAndRename(filePath, newFilePath);
     }
   }
 }
@@ -89,10 +142,8 @@ async function renameFilePhase2(filePath: string) {
 
   if (baseName.endsWith(tempSuffix)) {
     const newFileName = removeSuffix(baseName) + ext;
-    console.log(newFileName);
-
     const newFilePath = path.join(dir, newFileName);
-    await fs.rename(filePath, newFilePath);
+    await ensureAndRename(filePath, newFilePath);
   }
 }
 
@@ -109,9 +160,8 @@ async function renameFolderPhase1(
 ) {
   const segments = folderPath.split(path.sep);
   const transformedSegments = segments.map((segment) => {
-    if (segment.startsWith("[")) {
-      console.log("preserve segment", segment);
-      return segment; // Keep original for segments starting with `[`
+    if (shouldPreserveName(segment)) {
+      return segment;
     }
 
     const transformed = transformFn(segment);
@@ -125,7 +175,19 @@ async function renameFolderPhase1(
   const newFolderPath = path.join(...transformedSegments);
 
   if (newFolderPath !== folderPath) {
-    await fs.rename(folderPath, newFolderPath);
+    try {
+      await fs.move(folderPath, newFolderPath, { overwrite: true });
+    } catch (error) {
+      console.error(
+        `Error renaming folder ${folderPath} to ${newFolderPath}:`,
+        error
+      );
+      // If move fails, try to rename the folder itself without moving contents
+      const parentDir = path.dirname(folderPath);
+      const newFolderName = path.basename(newFolderPath);
+      const tempPath = path.join(parentDir, newFolderName);
+      await fs.rename(folderPath, tempPath);
+    }
   }
 }
 
@@ -140,7 +202,7 @@ async function renameFolderPhase2(folderPath: string) {
 
   if (baseName.endsWith(tempSuffix)) {
     const newFolderPath = path.join(dir, removeSuffix(baseName));
-    await fs.rename(folderPath, newFolderPath);
+    await ensureAndRename(folderPath, newFolderPath);
   }
 }
 
@@ -149,4 +211,8 @@ function removeSuffix(baseName: string) {
     return baseName.slice(0, -tempSuffix.length);
   }
   return baseName;
+}
+
+function shouldPreserveName(name: string): boolean {
+  return name.startsWith("[");
 }

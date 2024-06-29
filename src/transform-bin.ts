@@ -44,28 +44,28 @@ async function run() {
     process.exit(1);
   }
 
-  const transformType = "snake";
+  const transformType = "kebab";
 
   const transformFn = getCasingTransform(transformType);
 
-  console.log("Rename phase 1/2...");
-  await renameFilesAndFolders(directoryPath, "phase1", transformFn);
+  // console.log("Rename phase 1/2...");
+  // await renameFilesAndFolders(directoryPath, "phase1", transformFn);
 
   // console.log("Commit changes");
   // await commitChanges("Rename files and folders phase 1/2");
 
-  // console.log("Rename phase 2/2...");
-  // await renameFilesAndFolders(directoryPath, "phase2", transformFn);
+  console.log("Rename phase 2/2...");
+  await renameFilesAndFolders(directoryPath, "phase2", transformFn);
 
-  // console.log("Commit changes");
-  // await commitChanges("Rename files and folders phase 2/2");
+  console.log("Commit changes");
+  await commitChanges("Rename files and folders phase 2/2");
 
   // console.log("Transform import and export paths...");
 
   // await runCodemod(directoryPath, transformType);
 
-  await commitChanges("Commit changes");
-  console.log("🦄");
+  // await commitChanges("Commit changes");
+  // console.log("🦄");
 }
 
 run().catch((err) => {
