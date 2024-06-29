@@ -4,33 +4,8 @@ import { ignoredDirectories, targetFileExtensions } from "./config";
 
 const tempSuffix = "__tmp";
 
-async function ensureAndRename(oldPath: string, newPath: string) {
-  await fs.ensureDir(path.dirname(newPath));
-  await fs.rename(oldPath, newPath);
-}
-
-async function removeEmptyFolders(dirPath: string) {
-  const items = await fs.readdir(dirPath);
-  for (const item of items) {
-    const fullPath = path.join(dirPath, item);
-    if ((await fs.stat(fullPath)).isDirectory()) {
-      await removeEmptyFolders(fullPath);
-    }
-  }
-  const updatedItems = await fs.readdir(dirPath);
-  if (updatedItems.length === 0) {
-    await fs.rmdir(dirPath);
-  }
-}
-
 function isIgnoredPath(itemPath: string): boolean {
   const basename = path.basename(itemPath);
-
-  // if(basename === "."
-  // // Ignore any file or directory that starts with a dot
-  // if (basename.startsWith(".")) {
-  //   return true;
-  // }
 
   return (
     ignoredDirectories.has(basename) ||
@@ -42,19 +17,44 @@ function isIgnoredPath(itemPath: string): boolean {
   );
 }
 
-/**
- * Recursively renames files and folders in the specified directory based on the
- * phase.
- *
- * @param directoryPath - The path of the directory to process.
- * @param phase - The phase of renaming ('phase1' or 'phase2').
- * @param transformFn - The transformation function to apply to each segment.
- */
+function shouldPreserveName(name: string): boolean {
+  return name.startsWith("[");
+}
+
+function renamePathSegment(
+  segment: string,
+  convertFn: (str: string) => string,
+  phase: "phase1" | "phase2"
+): string {
+  if (shouldPreserveName(segment)) {
+    return segment;
+  }
+
+  if (phase === "phase1") {
+    const transformed = convertFn(segment);
+    return /[A-Z]/.test(segment)
+      ? transformed.toLowerCase() === segment.toLowerCase()
+        ? transformed + tempSuffix
+        : transformed
+      : segment;
+  } else if (phase === "phase2") {
+    return segment.endsWith(tempSuffix)
+      ? segment.slice(0, -tempSuffix.length)
+      : segment;
+  }
+
+  return segment;
+}
+
 export async function renameFilesAndFolders(
   directoryPath: string,
   phase: "phase1" | "phase2",
-  transformFn: (str: string) => string
+  convertFn: (str: string) => string
 ) {
+  console.log(`\n--- Starting renameFilesAndFolders ---`);
+  console.log(`Phase: ${phase}`);
+  console.log(`Directory: ${directoryPath}`);
+
   if (isIgnoredPath(directoryPath)) {
     console.log(`Ignoring path: ${directoryPath}`);
     return;
@@ -62,46 +62,101 @@ export async function renameFilesAndFolders(
 
   console.log(`Processing path: ${directoryPath}`);
 
-  const items = await fs.readdir(directoryPath);
+  // Collect all directories to rename them later
+  const directoriesToRename: string[] = [];
+
+  // First pass: Rename all files and collect directories
+  console.log("Starting file renaming and directory collection...");
+  await renameFiles(directoryPath, phase, convertFn, directoriesToRename);
+  console.log(`Collected ${directoriesToRename.length} directories to rename.`);
+
+  // Second pass: Rename all collected directories
+  console.log("\nStarting directory renaming...");
+  for (const [index, dir] of directoriesToRename.reverse().entries()) {
+    console.log(
+      `\nProcessing directory ${index + 1}/${directoriesToRename.length}: ${dir}`
+    );
+
+    if (!(await fs.pathExists(dir))) {
+      console.log(`  Skipping non-existent directory: ${dir}`);
+      continue;
+    }
+
+    const newDirName = renamePathSegment(path.basename(dir), convertFn, phase);
+    const newDirPath = path.join(path.dirname(dir), newDirName);
+
+    if (newDirPath !== dir) {
+      try {
+        console.log(`  Attempting to rename: ${dir} -> ${newDirPath}`);
+        await fs.ensureDir(path.dirname(newDirPath));
+        await fs.rename(dir, newDirPath);
+        console.log(
+          `  Successfully renamed directory: ${dir} -> ${newDirPath}`
+        );
+      } catch (error) {
+        console.error(
+          `  Error renaming directory: ${dir} -> ${newDirPath}`,
+          error
+        );
+      }
+    } else {
+      console.log(`  No renaming needed for: ${dir}`);
+    }
+  }
+  console.log("Directory renaming completed.");
+}
+
+async function renameFiles(
+  directoryPath: string,
+  phase: "phase1" | "phase2",
+  convertFn: (str: string) => string,
+  directoriesToRename: string[]
+) {
+  console.log(`\nEntering directory: ${directoryPath}`);
+  let items;
+  try {
+    items = await fs.readdir(directoryPath);
+    console.log(`  Found ${items.length} items in directory.`);
+  } catch (error) {
+    console.error(`  Error reading directory: ${directoryPath}`, error);
+    return;
+  }
 
   for (const item of items) {
     const itemPath = path.join(directoryPath, item);
 
     if (isIgnoredPath(itemPath)) {
+      console.log(`  Ignoring: ${itemPath}`);
       continue;
     }
 
-    const stat = await fs.stat(itemPath);
+    let stat;
+    try {
+      stat = await fs.stat(itemPath);
+    } catch (error) {
+      console.error(`  Error getting stats for: ${itemPath}`, error);
+      continue;
+    }
 
     if (stat.isDirectory()) {
-      await renameFilesAndFolders(itemPath, phase, transformFn);
-      if (phase === "phase1") {
-        await renameFolderPhase1(itemPath, transformFn);
-      } else if (phase === "phase2") {
-        await renameFolderPhase2(itemPath);
-      }
+      console.log(`  Adding directory to rename list: ${itemPath}`);
+      directoriesToRename.push(itemPath);
+      await renameFiles(itemPath, phase, convertFn, directoriesToRename);
     } else if (targetFileExtensions.some((ext) => item.endsWith(ext))) {
+      console.log(`  Processing file: ${itemPath}`);
       if (phase === "phase1") {
-        await renameFilePhase1(itemPath, transformFn);
+        await renameFilePhase1(itemPath, convertFn);
       } else if (phase === "phase2") {
         await renameFilePhase2(itemPath);
       }
     }
   }
-
-  if (phase === "phase2") {
-    await removeEmptyFolders(directoryPath);
-  }
+  console.log(`Exiting directory: ${directoryPath}`);
 }
 
-/**
- * Renames a file to kebab-case and adds an underscore suffix if necessary.
- *
- * @param filePath - The path of the file to rename.
- */
 async function renameFilePhase1(
   filePath: string,
-  transformFn: (str: string) => string
+  convertFn: (str: string) => string
 ) {
   const dir = path.dirname(filePath);
   const ext = path.extname(filePath);
@@ -112,7 +167,7 @@ async function renameFilePhase1(
   }
 
   if (/[A-Z]/.test(baseName)) {
-    const newFileName = transformFn(baseName) + ext;
+    const newFileName = convertFn(baseName) + ext;
     const caseInsensitiveNewFileName = newFileName.toLowerCase();
 
     if (
@@ -120,99 +175,29 @@ async function renameFilePhase1(
     ) {
       const newFilePath = path.join(
         dir,
-        transformFn(baseName) + tempSuffix + ext
+        convertFn(baseName) + tempSuffix + ext
       );
-      await ensureAndRename(filePath, newFilePath);
+      await moveFile(filePath, newFilePath);
     } else {
       const newFilePath = path.join(dir, newFileName);
-      await ensureAndRename(filePath, newFilePath);
+      await moveFile(filePath, newFilePath);
     }
   }
 }
 
-/**
- * Removes the underscore suffix from a file name.
- *
- * @param filePath - The path of the file to rename.
- */
 async function renameFilePhase2(filePath: string) {
   const dir = path.dirname(filePath);
   const ext = path.extname(filePath);
   const baseName = path.basename(filePath, ext);
 
   if (baseName.endsWith(tempSuffix)) {
-    const newFileName = removeSuffix(baseName) + ext;
+    const newFileName = baseName.slice(0, -tempSuffix.length) + ext;
     const newFilePath = path.join(dir, newFileName);
-    await ensureAndRename(filePath, newFilePath);
+    await moveFile(filePath, newFilePath);
   }
 }
 
-/**
- * Renames a folder by segment to kebab-case and adds an underscore suffix if
- * necessary, keeping original names for segments starting with `[`.
- *
- * @param folderPath - The path of the folder to rename.
- * @param transformFn - The transformation function to apply to each segment.
- */
-async function renameFolderPhase1(
-  folderPath: string,
-  transformFn: (str: string) => string
-) {
-  const segments = folderPath.split(path.sep);
-  const transformedSegments = segments.map((segment) => {
-    if (shouldPreserveName(segment)) {
-      return segment;
-    }
-
-    const transformed = transformFn(segment);
-    return /[A-Z]/.test(segment)
-      ? transformed.toLowerCase() === segment.toLowerCase()
-        ? transformed + tempSuffix
-        : transformed
-      : segment;
-  });
-
-  const newFolderPath = path.join(...transformedSegments);
-
-  if (newFolderPath !== folderPath) {
-    try {
-      await fs.move(folderPath, newFolderPath, { overwrite: true });
-    } catch (error) {
-      console.error(
-        `Error renaming folder ${folderPath} to ${newFolderPath}:`,
-        error
-      );
-      // If move fails, try to rename the folder itself without moving contents
-      const parentDir = path.dirname(folderPath);
-      const newFolderName = path.basename(newFolderPath);
-      const tempPath = path.join(parentDir, newFolderName);
-      await fs.rename(folderPath, tempPath);
-    }
-  }
-}
-
-/**
- * Removes the underscore suffix from a folder name.
- *
- * @param folderPath - The path of the folder to rename.
- */
-async function renameFolderPhase2(folderPath: string) {
-  const dir = path.dirname(folderPath);
-  const baseName = path.basename(folderPath);
-
-  if (baseName.endsWith(tempSuffix)) {
-    const newFolderPath = path.join(dir, removeSuffix(baseName));
-    await ensureAndRename(folderPath, newFolderPath);
-  }
-}
-
-function removeSuffix(baseName: string) {
-  if (baseName.endsWith(tempSuffix)) {
-    return baseName.slice(0, -tempSuffix.length);
-  }
-  return baseName;
-}
-
-function shouldPreserveName(name: string): boolean {
-  return name.startsWith("[");
+async function moveFile(oldPath: string, newPath: string) {
+  await fs.ensureDir(path.dirname(newPath));
+  await fs.move(oldPath, newPath, { overwrite: false });
 }
