@@ -27,5 +27,13 @@ export async function runCodemod(
   await Runner.run(codemodPath, inputFiles, {
     extensions: "ts,tsx,js,jsx",
     parser: "tsx",
+    ignorePaths: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/public/**",
+    ],
+    // dry: true,
+    // runInBand: true,
   });
 }
