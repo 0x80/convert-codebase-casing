@@ -48,7 +48,8 @@ manually.
 
 # TODO
 
-- [] Node modules in subfolders are still picked up as input files
+- Rewrite to take file inputs using glob patterns
+- Take .gitignore as input to generate glob patterns
 
 # How it works
 
