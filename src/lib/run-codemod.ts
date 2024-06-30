@@ -27,7 +27,8 @@ export async function runCodemod(
   await Runner.run(codemodPath, inputFiles, {
     extensions: "ts,tsx,js,jsx",
     parser: "tsx",
-    ignorePaths: [
+    // ignoreConfig: [".gitignore"],
+    ignorePattern: [
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",
