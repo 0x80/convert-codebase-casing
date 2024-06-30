@@ -1,22 +1,29 @@
 import Runner from "jscodeshift/src/Runner.js";
-import { listFiles } from "./list-files";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import fs from "node:fs";
-import assert from "node:assert";
+import { debugLog } from "./debug-log";
+import { getFilesToProcess } from "./get-files-to-process";
 
 export async function runCodemod(
   directoryPath: string,
-  casingType: "kebab" | "snake"
+  gitignorePath: string,
+  casingType: "kebab" | "snake",
+  targetFileExtensions: string[]
 ) {
-  const inputFiles = await listFiles(directoryPath, [
-    ".ts",
-    ".tsx",
-    ".js",
-    ".jsx",
-  ]);
+  debugLog("Running codemod");
+  debugLog("Directory:", directoryPath);
+  debugLog("Gitignore path:", gitignorePath);
+  debugLog("Casing type:", casingType);
+  debugLog("Target file extensions:", targetFileExtensions);
 
-  // Derive the absolute path to the codemod
+  const inputFiles = await getFilesToProcess(
+    directoryPath,
+    gitignorePath,
+    ["ts", "tsx", "js", "jsx"] // only code here
+  );
+
+  debugLog(`Found ${inputFiles.length} files to process`);
+
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const codemodPath = path.resolve(
@@ -26,24 +33,26 @@ export async function runCodemod(
       : "./codemods/transform-import-export-snake.cjs"
   );
 
-  const gitIgnorePath = path.resolve(process.cwd(), ".gitignore");
+  debugLog("Codemod path:", codemodPath);
 
-  assert(
-    fs.existsSync(gitIgnorePath),
-    "Please run this from a location with a .gitignore file"
-  );
-
-  await Runner.run(codemodPath, inputFiles, {
-    extensions: "ts,tsx,js,jsx",
+  const result = await Runner.run(codemodPath, inputFiles, {
     parser: "tsx",
-    ignoreConfig: gitIgnorePath,
-    // ignorePattern: [
-    //   "**/node_modules/**",
-    //   "**/dist/**",
-    //   "**/build/**",
-    //   "**/public/**",
-    // ],
-    // dry: true,
-    // runInBand: true,
+    verbose: 2,
+    dry: false,
+    print: false,
+    babel: true,
+    extensions: "ts,tsx,js,jsx",
+    // extensions: targetFileExtensions.map((ext) => ext.slice(1)).join(","),
+    ignorePattern: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/public/**",
+    ],
+    // ignoreConfig: gitignorePath,
+    runInBand: true,
   });
+
+  debugLog("Codemod result:", result);
+  return result;
 }

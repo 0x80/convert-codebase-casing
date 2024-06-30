@@ -38,17 +38,19 @@ const cli = meow(
       debug: {
         type: "boolean",
         shortFlag: "d",
+        default: false,
       },
       extensions: {
         type: "string",
         shortFlag: "e",
+        default: defaultTargetFileExtensions.join(","),
       },
     },
   }
 );
 
 // Set debug mode based on the flag
-setDebugMode(cli.flags.debug ?? false);
+setDebugMode(cli.flags.debug);
 
 async function run() {
   const directoryPath = cli.input[0];
@@ -71,13 +73,11 @@ async function run() {
 
   // Parse and validate the extensions flag
   const targetFileExtensions = cli.flags.extensions
-    ? cli.flags.extensions
-        .split(",")
-        .map((ext) => ext.trim())
-        .filter((ext) => ext.startsWith("."))
-    : defaultTargetFileExtensions;
+    .split(",")
+    .map((ext) => ext.trim())
+    .filter((ext) => ext.startsWith("."));
 
-  if (cli.flags.extensions && targetFileExtensions.length === 0) {
+  if (targetFileExtensions.length === 0) {
     console.error(
       "Error: Invalid file extensions provided. Extensions must start with a dot (.)"
     );
@@ -118,12 +118,20 @@ async function run() {
   console.log("Commit changes");
   await commitChanges("Rename files and folders phase 2/2");
 
-  console.log("Transform import and export paths...");
+  debugLog("Running codemod to update import/export statements");
+  console.log("Updating import and export statements...");
+  await runCodemod(
+    directoryPath,
+    gitignorePath,
+    transformType,
+    targetFileExtensions
+  );
 
-  await runCodemod(directoryPath, transformType);
+  debugLog("Committing changes for import/export updates");
+  console.log("Commit changes");
+  await commitChanges("Update import and export statements");
 
-  await commitChanges("Transform import and export paths");
-  console.log("🦄");
+  console.log("Transformation complete!");
 }
 
 run().catch((err) => {

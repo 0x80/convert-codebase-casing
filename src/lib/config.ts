@@ -9,3 +9,5 @@ export const targetFileExtensions = [
 ];
 
 export const targetPathPrefixes = ["./", "../", "~/", "@/", "@src/"];
+
+export const ignoredDirectories = new Set([".git"]);

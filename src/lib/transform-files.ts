@@ -1,33 +1,9 @@
 import fs from "fs-extra";
 import path from "path";
-import { glob } from "glob";
-import parseGitignore from "parse-gitignore";
 import { debugLog } from "./debug-log";
+import { getFilesToProcess } from "./get-files-to-process";
 
 const tempSuffix = "__tmp";
-
-async function getFilesToProcess(
-  directoryPath: string,
-  gitignorePath: string,
-  targetFileExtensions: string[]
-): Promise<string[]> {
-  // Read and parse .gitignore
-  const gitignoreContent = await fs.readFile(gitignorePath, "utf-8");
-  const ignoredPatterns = parseGitignore(gitignoreContent);
-
-  // Create glob patterns for target file extensions
-  const globPatterns = targetFileExtensions.map((ext) => `**/*${ext}`);
-
-  // Use glob to find files, respecting .gitignore
-  const files = await glob(globPatterns, {
-    cwd: directoryPath,
-    ignore: ignoredPatterns,
-    absolute: true,
-    nodir: true,
-  });
-
-  return files;
-}
 
 function shouldPreserveName(name: string): boolean {
   return name.startsWith("[");
