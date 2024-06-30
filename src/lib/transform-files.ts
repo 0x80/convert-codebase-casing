@@ -1,20 +1,31 @@
 import fs from "fs-extra";
 import path from "path";
-import { ignoredDirectories, targetFileExtensions } from "./config";
+import { glob } from "glob";
+import parseGitignore from "parse-gitignore";
+import { targetFileExtensions } from "./config";
 
 const tempSuffix = "__tmp";
 
-function isIgnoredPath(itemPath: string): boolean {
-  const basename = path.basename(itemPath);
+async function getFilesToProcess(
+  directoryPath: string,
+  gitignorePath: string
+): Promise<string[]> {
+  // Read and parse .gitignore
+  const gitignoreContent = await fs.readFile(gitignorePath, "utf-8");
+  const ignoredPatterns = parseGitignore(gitignoreContent);
 
-  return (
-    ignoredDirectories.has(basename) ||
-    Array.from(ignoredDirectories).some(
-      (dir) =>
-        itemPath.includes(`${path.sep}${dir}${path.sep}`) ||
-        itemPath.endsWith(`${path.sep}${dir}`)
-    )
-  );
+  // Create glob patterns for target file extensions
+  const globPatterns = targetFileExtensions.map((ext) => `**/*${ext}`);
+
+  // Use glob to find files, respecting .gitignore
+  const files = await glob(globPatterns, {
+    cwd: directoryPath,
+    ignore: ignoredPatterns,
+    absolute: true,
+    nodir: true,
+  });
+
+  return files;
 }
 
 function shouldPreserveName(name: string): boolean {
@@ -48,37 +59,41 @@ function renamePathSegment(
 
 export async function renameFilesAndFolders(
   directoryPath: string,
+  gitignorePath: string,
   phase: "phase1" | "phase2",
-  convertFn: (str: string) => string
+  convertFn: (str: string) => string,
+  debugLog: (...args: any[]) => void
 ) {
-  console.log(`\n--- Starting renameFilesAndFolders ---`);
-  console.log(`Phase: ${phase}`);
-  console.log(`Directory: ${directoryPath}`);
+  debugLog(
+    `Starting renameFilesAndFolders - Phase: ${phase}, Directory: ${directoryPath}`
+  );
 
-  if (isIgnoredPath(directoryPath)) {
-    console.log(`Ignoring path: ${directoryPath}`);
-    return;
-  }
-
-  console.log(`Processing path: ${directoryPath}`);
+  const filesToProcess = await getFilesToProcess(directoryPath, gitignorePath);
+  debugLog(`Found ${filesToProcess.length} files to process`);
 
   // Collect all directories to rename them later
-  const directoriesToRename: string[] = [];
+  const directoriesToRename = new Set<string>();
 
   // First pass: Rename all files and collect directories
-  console.log("Starting file renaming and directory collection...");
-  await renameFiles(directoryPath, phase, convertFn, directoriesToRename);
-  console.log(`Collected ${directoriesToRename.length} directories to rename.`);
+  debugLog("Starting file renaming and directory collection...");
+  for (const filePath of filesToProcess) {
+    await renameFile(filePath, phase, convertFn, debugLog);
+    const dir = path.dirname(filePath);
+    directoriesToRename.add(dir);
+  }
 
-  // Second pass: Rename all collected directories
-  console.log("\nStarting directory renaming...");
-  for (const [index, dir] of directoriesToRename.reverse().entries()) {
-    console.log(
-      `\nProcessing directory ${index + 1}/${directoriesToRename.length}: ${dir}`
-    );
+  debugLog(`Collected ${directoriesToRename.size} directories to rename.`);
+
+  // Second pass: Rename all collected directories (bottom-up)
+  debugLog("Starting directory renaming...");
+  const sortedDirs = Array.from(directoriesToRename).sort(
+    (a, b) => b.length - a.length
+  );
+  for (const [index, dir] of sortedDirs.entries()) {
+    debugLog(`Processing directory ${index + 1}/${sortedDirs.length}: ${dir}`);
 
     if (!(await fs.pathExists(dir))) {
-      console.log(`  Skipping non-existent directory: ${dir}`);
+      debugLog(`Skipping non-existent directory: ${dir}`);
       continue;
     }
 
@@ -87,76 +102,28 @@ export async function renameFilesAndFolders(
 
     if (newDirPath !== dir) {
       try {
-        console.log(`  Attempting to rename: ${dir} -> ${newDirPath}`);
+        debugLog(`Attempting to rename: ${dir} -> ${newDirPath}`);
         await fs.ensureDir(path.dirname(newDirPath));
         await fs.rename(dir, newDirPath);
-        console.log(
-          `  Successfully renamed directory: ${dir} -> ${newDirPath}`
-        );
+        debugLog(`Successfully renamed directory: ${dir} -> ${newDirPath}`);
       } catch (error) {
         console.error(
-          `  Error renaming directory: ${dir} -> ${newDirPath}`,
+          `Error renaming directory: ${dir} -> ${newDirPath}`,
           error
         );
       }
     } else {
-      console.log(`  No renaming needed for: ${dir}`);
+      debugLog(`No renaming needed for: ${dir}`);
     }
   }
-  console.log("Directory renaming completed.");
+  debugLog("Directory renaming completed.");
 }
 
-async function renameFiles(
-  directoryPath: string,
+async function renameFile(
+  filePath: string,
   phase: "phase1" | "phase2",
   convertFn: (str: string) => string,
-  directoriesToRename: string[]
-) {
-  console.log(`\nEntering directory: ${directoryPath}`);
-  let items;
-  try {
-    items = await fs.readdir(directoryPath);
-    console.log(`  Found ${items.length} items in directory.`);
-  } catch (error) {
-    console.error(`  Error reading directory: ${directoryPath}`, error);
-    return;
-  }
-
-  for (const item of items) {
-    const itemPath = path.join(directoryPath, item);
-
-    if (isIgnoredPath(itemPath)) {
-      console.log(`  Ignoring: ${itemPath}`);
-      continue;
-    }
-
-    let stat;
-    try {
-      stat = await fs.stat(itemPath);
-    } catch (error) {
-      console.error(`  Error getting stats for: ${itemPath}`, error);
-      continue;
-    }
-
-    if (stat.isDirectory()) {
-      console.log(`  Adding directory to rename list: ${itemPath}`);
-      directoriesToRename.push(itemPath);
-      await renameFiles(itemPath, phase, convertFn, directoriesToRename);
-    } else if (targetFileExtensions.some((ext) => item.endsWith(ext))) {
-      console.log(`  Processing file: ${itemPath}`);
-      if (phase === "phase1") {
-        await renameFilePhase1(itemPath, convertFn);
-      } else if (phase === "phase2") {
-        await renameFilePhase2(itemPath);
-      }
-    }
-  }
-  console.log(`Exiting directory: ${directoryPath}`);
-}
-
-async function renameFilePhase1(
-  filePath: string,
-  convertFn: (str: string) => string
+  debugLog: (...args: any[]) => void
 ) {
   const dir = path.dirname(filePath);
   const ext = path.extname(filePath);
@@ -166,34 +133,30 @@ async function renameFilePhase1(
     return;
   }
 
-  if (/[A-Z]/.test(baseName)) {
-    const newFileName = convertFn(baseName) + ext;
-    const caseInsensitiveNewFileName = newFileName.toLowerCase();
+  if (phase === "phase1") {
+    if (/[A-Z]/.test(baseName)) {
+      const newFileName = convertFn(baseName) + ext;
+      const caseInsensitiveNewFileName = newFileName.toLowerCase();
 
-    if (
-      baseName.toLowerCase() === caseInsensitiveNewFileName.replace(ext, "")
-    ) {
-      const newFilePath = path.join(
-        dir,
-        convertFn(baseName) + tempSuffix + ext
-      );
-      await moveFile(filePath, newFilePath);
-    } else {
+      if (
+        baseName.toLowerCase() === caseInsensitiveNewFileName.replace(ext, "")
+      ) {
+        const newFilePath = path.join(
+          dir,
+          convertFn(baseName) + tempSuffix + ext
+        );
+        await moveFile(filePath, newFilePath);
+      } else {
+        const newFilePath = path.join(dir, newFileName);
+        await moveFile(filePath, newFilePath);
+      }
+    }
+  } else if (phase === "phase2") {
+    if (baseName.endsWith(tempSuffix)) {
+      const newFileName = baseName.slice(0, -tempSuffix.length) + ext;
       const newFilePath = path.join(dir, newFileName);
       await moveFile(filePath, newFilePath);
     }
-  }
-}
-
-async function renameFilePhase2(filePath: string) {
-  const dir = path.dirname(filePath);
-  const ext = path.extname(filePath);
-  const baseName = path.basename(filePath, ext);
-
-  if (baseName.endsWith(tempSuffix)) {
-    const newFileName = baseName.slice(0, -tempSuffix.length) + ext;
-    const newFilePath = path.join(dir, newFileName);
-    await moveFile(filePath, newFilePath);
   }
 }
 

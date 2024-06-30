@@ -15,11 +15,14 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       glob:
-        specifier: ^10.3.12
+        specifier: ^10.4.1
         version: 10.4.1
       meow:
         specifier: ^13.2.0
         version: 13.2.0
+      parse-gitignore:
+        specifier: ^2.0.0
+        version: 2.0.0
       remeda:
         specifier: ^2.0.9
         version: 2.0.10
@@ -57,6 +60,9 @@ importers:
       '@types/node':
         specifier: ^20.14.2
         version: 20.14.2
+      '@types/parse-gitignore':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@types/source-map-support':
         specifier: ^0.5.10
         version: 0.5.10
@@ -789,6 +795,9 @@ packages:
 
   '@types/node@20.14.2':
     resolution: {integrity: sha512-xyu6WAMVwv6AKFLB+e/7ySZVr/0zLCzOa7rSpq6jNwpqOrUbcACDWC+53d4n2QHOnDou0fbIsg8wZu/sxrnI4Q==}
+
+  '@types/parse-gitignore@1.0.2':
+    resolution: {integrity: sha512-AQwj+lNTWI7y1kkMe8qLByiToXoXs/du70qGFIHJZaJUVrF5jB8QzvWmLyR1VWYqRagpY8ABrqAjs7uHsJnVBQ==}
 
   '@types/semver@7.5.8':
     resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
@@ -1712,6 +1721,10 @@ packages:
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
+
+  parse-gitignore@2.0.0:
+    resolution: {integrity: sha512-RmVuCHWsfu0QPNW+mraxh/xjQVw/lhUCUru8Zni3Ctq3AoMhpDTq0OVdKS6iesd6Kqb7viCV3isAL43dciOSog==}
+    engines: {node: '>=14'}
 
   path-exists@3.0.0:
     resolution: {integrity: sha512-bpC7GYwiDYQ4wYLe+FA8lhRjhQCMcQGuSgGGqDkg/QerRWw9CmGRT0iSOVRSZJ29NMLZgIzqaljJ63oaL4NIJQ==}
@@ -2838,6 +2851,10 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/parse-gitignore@1.0.2':
+    dependencies:
+      '@types/node': 20.14.2
+
   '@types/semver@7.5.8': {}
 
   '@types/source-map-support@0.5.10':
@@ -3920,6 +3937,8 @@ snapshots:
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
+
+  parse-gitignore@2.0.0: {}
 
   path-exists@3.0.0: {}
 
