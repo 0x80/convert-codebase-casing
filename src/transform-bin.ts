@@ -7,6 +7,9 @@ import path from "path";
 import { getCasingTransform } from "./lib/get-casing-transform";
 import { commitChanges } from "./lib/commit-changes";
 import { renameFilesAndFolders } from "./lib/transform-files";
+import { targetFileExtensions as defaultTargetFileExtensions } from "./lib/config";
+import { setDebugMode, debugLog } from "./lib/debug-log";
+import { runCodemod } from "./lib/run-codemod";
 
 sourceMaps.install();
 
@@ -16,12 +19,14 @@ const cli = meow(
     $ npx transform-codebase-casing <directory>
 
   Options
-    --help, -h     Show help text
-    --debug, -d    Enable debug logging
+    --help, -h             Show help text
+    --debug, -d            Enable debug logging
+    --extensions, -e       Comma-separated list of file extensions to process (overrides default)
 
   Examples
     $ npx transform-codebase-casing ./src
     $ npx transform-codebase-casing ./src --debug
+    $ npx transform-codebase-casing ./src --extensions .js,.ts,.tsx
 `,
   {
     importMeta: import.meta,
@@ -34,14 +39,16 @@ const cli = meow(
         type: "boolean",
         shortFlag: "d",
       },
+      extensions: {
+        type: "string",
+        shortFlag: "e",
+      },
     },
   }
 );
 
-// Create a debug logging function
-const debugLog = cli.flags.debug
-  ? (...args: any[]) => console.log("[DEBUG]", ...args)
-  : () => {};
+// Set debug mode based on the flag
+setDebugMode(cli.flags.debug ?? false);
 
 async function run() {
   const directoryPath = cli.input[0];
@@ -62,6 +69,23 @@ async function run() {
     process.exit(1);
   }
 
+  // Parse and validate the extensions flag
+  const targetFileExtensions = cli.flags.extensions
+    ? cli.flags.extensions
+        .split(",")
+        .map((ext) => ext.trim())
+        .filter((ext) => ext.startsWith("."))
+    : defaultTargetFileExtensions;
+
+  if (cli.flags.extensions && targetFileExtensions.length === 0) {
+    console.error(
+      "Error: Invalid file extensions provided. Extensions must start with a dot (.)"
+    );
+    process.exit(1);
+  }
+
+  debugLog("Target file extensions:", targetFileExtensions);
+
   const transformType = "kebab";
 
   const transformFn = getCasingTransform(transformType);
@@ -73,7 +97,7 @@ async function run() {
     gitignorePath,
     "phase1",
     transformFn,
-    debugLog
+    targetFileExtensions
   );
 
   debugLog("Committing changes for phase 1");
@@ -87,19 +111,19 @@ async function run() {
     gitignorePath,
     "phase2",
     transformFn,
-    debugLog
+    targetFileExtensions
   );
 
   debugLog("Committing changes for phase 2");
   console.log("Commit changes");
   await commitChanges("Rename files and folders phase 2/2");
 
-  // console.log("Transform import and export paths...");
+  console.log("Transform import and export paths...");
 
-  // await runCodemod(directoryPath, transformType);
+  await runCodemod(directoryPath, transformType);
 
-  // await commitChanges("Transform import and export paths");
-  // console.log("🦄");
+  await commitChanges("Transform import and export paths");
+  console.log("🦄");
 }
 
 run().catch((err) => {

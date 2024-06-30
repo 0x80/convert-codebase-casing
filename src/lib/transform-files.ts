@@ -2,13 +2,14 @@ import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
 import parseGitignore from "parse-gitignore";
-import { targetFileExtensions } from "./config";
+import { debugLog } from "./debug-log";
 
 const tempSuffix = "__tmp";
 
 async function getFilesToProcess(
   directoryPath: string,
-  gitignorePath: string
+  gitignorePath: string,
+  targetFileExtensions: string[]
 ): Promise<string[]> {
   // Read and parse .gitignore
   const gitignoreContent = await fs.readFile(gitignorePath, "utf-8");
@@ -62,13 +63,18 @@ export async function renameFilesAndFolders(
   gitignorePath: string,
   phase: "phase1" | "phase2",
   convertFn: (str: string) => string,
-  debugLog: (...args: any[]) => void
+  targetFileExtensions: string[]
 ) {
   debugLog(
     `Starting renameFilesAndFolders - Phase: ${phase}, Directory: ${directoryPath}`
   );
+  debugLog(`Target file extensions: ${targetFileExtensions.join(", ")}`);
 
-  const filesToProcess = await getFilesToProcess(directoryPath, gitignorePath);
+  const filesToProcess = await getFilesToProcess(
+    directoryPath,
+    gitignorePath,
+    targetFileExtensions
+  );
   debugLog(`Found ${filesToProcess.length} files to process`);
 
   // Collect all directories to rename them later
@@ -77,7 +83,7 @@ export async function renameFilesAndFolders(
   // First pass: Rename all files and collect directories
   debugLog("Starting file renaming and directory collection...");
   for (const filePath of filesToProcess) {
-    await renameFile(filePath, phase, convertFn, debugLog);
+    await renameFile(filePath, phase, convertFn);
     const dir = path.dirname(filePath);
     directoriesToRename.add(dir);
   }
@@ -122,8 +128,7 @@ export async function renameFilesAndFolders(
 async function renameFile(
   filePath: string,
   phase: "phase1" | "phase2",
-  convertFn: (str: string) => string,
-  debugLog: (...args: any[]) => void
+  convertFn: (str: string) => string
 ) {
   const dir = path.dirname(filePath);
   const ext = path.extname(filePath);
