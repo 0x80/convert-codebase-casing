@@ -4,9 +4,9 @@ import sourceMaps from "source-map-support";
 import meow from "meow";
 import fs from "fs-extra";
 import path from "path";
-import { getCasingTransform } from "./lib/get-casing-transform";
+import { getCasingFunction } from "./lib/get-casing-function";
 import { commitChanges } from "./lib/commit-changes";
-import { renameFilesAndFolders } from "./lib/transform-files";
+import { renameFilesAndFolders } from "./lib/convert-files";
 import { targetFileExtensions as defaultTargetFileExtensions } from "./lib/config";
 import { setDebugMode, debugLog } from "./lib/debug-log";
 import { runCodemod } from "./lib/run-codemod";
@@ -88,7 +88,7 @@ async function run() {
 
   const transformType = "kebab";
 
-  const transformFn = getCasingTransform(transformType);
+  const transformFn = getCasingFunction(transformType);
 
   debugLog("Starting rename phase 1/2");
   console.log("Rename phase 1/2...");

@@ -24,6 +24,6 @@ function snakeCase(str: string): string {
     .toLowerCase();
 }
 
-export function getCasingTransform(casing: "kebab" | "snake") {
+export function getCasingFunction(casing: "kebab" | "snake") {
   return casing === "kebab" ? kebabCase : snakeCase;
 }

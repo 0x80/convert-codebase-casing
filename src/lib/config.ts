@@ -8,6 +8,7 @@ export const targetFileExtensions = [
   ".json",
 ];
 
-export const targetPathPrefixes = ["./", "../", "~/", "@/", "@src/"];
+/** All prefixes that would be considered imports from local files. */
+export const targetPathPrefixes = ["./", "../", "~/", "@/", "@src/", "#"];
 
 export const ignoredDirectories = new Set([".git"]);

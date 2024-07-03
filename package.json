@@ -1,14 +1,14 @@
 {
-  "name": "transform-codebase-casing",
+  "name": "convert-codebase-casing",
   "version": "0.0.0",
-  "description": "Transform an entire JS/TS codebase to either kebab-case or snake-case",
+  "description": "Convert an entire JS/TS codebase to either kebab-case or snake-case",
   "type": "module",
   "files": [
     "dist",
     "docs"
   ],
   "bin": {
-    "transform-codebase-casing": "dist/transform-bin.mjs"
+    "convert-codebase-casing": "dist/convert-codebase-casing.mjs"
   },
   "scripts": {
     "build": "tsup-node",
@@ -24,7 +24,9 @@
   "license": "MIT",
   "keywords": [
     "transform",
+    "convert",
     "files",
+    "codebase",
     "casing",
     "case",
     "rename",
