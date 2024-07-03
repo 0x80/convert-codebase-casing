@@ -19,11 +19,11 @@ function renamePathSegment(
   }
 
   if (phase === "phase1") {
-    const transformed = convertFn(segment);
+    const converted = convertFn(segment);
     return /[A-Z]/.test(segment)
-      ? transformed.toLowerCase() === segment.toLowerCase()
-        ? transformed + tempSuffix
-        : transformed
+      ? converted.toLowerCase() === segment.toLowerCase()
+        ? converted + tempSuffix
+        : converted
       : segment;
   } else if (phase === "phase2") {
     return segment.endsWith(tempSuffix)

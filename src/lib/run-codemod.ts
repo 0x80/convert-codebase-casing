@@ -29,8 +29,8 @@ export async function runCodemod(
   const codemodPath = path.resolve(
     __dirname,
     casingType === "kebab"
-      ? "./codemods/transform-import-export-kebab.cjs"
-      : "./codemods/transform-import-export-snake.cjs"
+      ? "./codemods/convert-import-export-kebab.cjs"
+      : "./codemods/convert-import-export-snake.cjs"
   );
 
   debugLog("Codemod path:", codemodPath);

@@ -16,17 +16,19 @@ sourceMaps.install();
 const cli = meow(
   `
   Usage
-    $ npx transform-codebase-casing <directory>
+    $ npx convert-codebase-casing <directory>
 
   Options
     --help, -h             Show help text
     --debug, -d            Enable debug logging
     --extensions, -e       Comma-separated list of file extensions to process (overrides default)
+    --casing, -c           Casing type: 'kebab' or 'snake' (default: 'kebab')
 
   Examples
-    $ npx transform-codebase-casing ./src
-    $ npx transform-codebase-casing ./src --debug
-    $ npx transform-codebase-casing ./src --extensions .js,.ts,.tsx
+    $ npx convert-codebase-casing ./src
+    $ npx convert-codebase-casing ./src --debug
+    $ npx convert-codebase-casing ./src --extensions .js,.ts,.tsx
+    $ npx convert-codebase-casing ./src --casing snake
 `,
   {
     importMeta: import.meta,
@@ -44,6 +46,11 @@ const cli = meow(
         type: "string",
         shortFlag: "e",
         default: defaultTargetFileExtensions.join(","),
+      },
+      casing: {
+        type: "string",
+        shortFlag: "c",
+        default: "kebab",
       },
     },
   }
@@ -86,9 +93,14 @@ async function run() {
 
   debugLog("Target file extensions:", targetFileExtensions);
 
-  const transformType = "kebab";
+  const casingType = cli.flags.casing;
 
-  const transformFn = getCasingFunction(transformType);
+  if (casingType !== "kebab" && casingType !== "snake") {
+    console.error("Error: Invalid casing type. Use 'kebab' or 'snake'.");
+    process.exit(1);
+  }
+
+  const casingFn = getCasingFunction(casingType);
 
   debugLog("Starting rename phase 1/2");
   console.log("Rename phase 1/2...");
@@ -96,7 +108,7 @@ async function run() {
     directoryPath,
     gitignorePath,
     "phase1",
-    transformFn,
+    casingFn,
     targetFileExtensions
   );
 
@@ -110,7 +122,7 @@ async function run() {
     directoryPath,
     gitignorePath,
     "phase2",
-    transformFn,
+    casingFn,
     targetFileExtensions
   );
 
@@ -123,7 +135,7 @@ async function run() {
   await runCodemod(
     directoryPath,
     gitignorePath,
-    transformType,
+    casingType,
     targetFileExtensions
   );
 
@@ -131,7 +143,7 @@ async function run() {
   console.log("Commit changes");
   await commitChanges("Update import and export statements");
 
-  console.log("Transformation complete!");
+  console.log("Conversion complete!");
 }
 
 run().catch((err) => {
