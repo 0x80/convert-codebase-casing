@@ -1,0 +1,64 @@
+import path from "path";
+
+// New function that doesn't mutate, but returns the new value if it should be changed
+export function getUpdatedSourceValue(
+  sourceValue: string,
+  transformFn: (str: string) => string
+): string | null {
+  const transformed = transformPath(sourceValue, transformFn);
+
+  if (transformed !== sourceValue) {
+    return transformed;
+  }
+
+  return null; // Return null if no change is needed
+}
+
+/** All prefixes that would be considered imports from local files. */
+export const targetPathPrefixes = ["./", "../", "~/", "@/", "@src/", "#"];
+
+function transformPath(
+  filePath: string,
+  casingFn: (str: string) => string
+): string {
+  const prefix = targetPathPrefixes.find((p) => filePath.startsWith(p));
+  if (!prefix) {
+    // console.log("Ignoring path", filePath);
+    return filePath;
+  }
+
+  const pathWithoutPrefix = filePath.slice(prefix.length);
+  const segments = pathWithoutPrefix.split(path.sep);
+  const newSegments = segments.map((segment, index) => {
+    // Apply special handling for the last segment (file name)
+    if (index === segments.length - 1) {
+      return convertFileName(segment, casingFn);
+    }
+    return convertSegment(segment, casingFn);
+  });
+
+  const newPath = prefix + newSegments.join(path.sep);
+  // console.log("Transform path", filePath, newPath);
+  return newPath;
+}
+
+function convertFileName(
+  fileName: string,
+  casingFn: (str: string) => string
+): string {
+  const ext = path.extname(fileName);
+  const baseName = path.basename(fileName, ext);
+  const convertedBaseName = convertSegment(baseName, casingFn);
+  return convertedBaseName + ext;
+}
+
+function convertSegment(
+  segment: string,
+  casingFn: (str: string) => string
+): string {
+  if (segment.startsWith("[")) {
+    return segment;
+  }
+
+  return casingFn(segment);
+}

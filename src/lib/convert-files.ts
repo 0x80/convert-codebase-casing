@@ -1,147 +1,166 @@
 import fs from "fs-extra";
 import path from "path";
-import { debugLog } from "./debug-log";
+import { logger } from "./logger";
 import { getFilesToProcess } from "./get-files-to-process";
 
-const tempSuffix = "__tmp";
-
-function shouldPreserveName(name: string): boolean {
-  return name.startsWith("[");
-}
-
-function renamePathSegment(
-  segment: string,
-  convertFn: (str: string) => string,
-  phase: "phase1" | "phase2"
-): string {
-  if (shouldPreserveName(segment)) {
-    return segment;
-  }
-
-  if (phase === "phase1") {
-    const converted = convertFn(segment);
-    return /[A-Z]/.test(segment)
-      ? converted.toLowerCase() === segment.toLowerCase()
-        ? converted + tempSuffix
-        : converted
-      : segment;
-  } else if (phase === "phase2") {
-    return segment.endsWith(tempSuffix)
-      ? segment.slice(0, -tempSuffix.length)
-      : segment;
-  }
-
-  return segment;
-}
+const TEMP_SUFFIX = "__tmp";
 
 export async function renameFilesAndFolders(
   directoryPath: string,
   gitignorePath: string,
   phase: "phase1" | "phase2",
-  convertFn: (str: string) => string,
-  targetFileExtensions: string[]
+  casingFn: (str: string) => string
 ) {
-  debugLog(
-    `Starting renameFilesAndFolders - Phase: ${phase}, Directory: ${directoryPath}`
+  const absoluteDirectoryPath = path.resolve(directoryPath);
+  logger.info(
+    `Starting renameFilesAndFolders - Phase: ${phase}, Directory: ${absoluteDirectoryPath}`
   );
-  debugLog(`Target file extensions: ${targetFileExtensions.join(", ")}`);
 
   const filesToProcess = await getFilesToProcess(
-    directoryPath,
-    gitignorePath,
-    targetFileExtensions
+    absoluteDirectoryPath,
+    gitignorePath
   );
-  debugLog(`Found ${filesToProcess.length} files to process`);
+  logger.info(`Found ${filesToProcess.length} files to process`);
 
-  // Collect all directories to rename them later
-  const directoriesToRename = new Set<string>();
+  const renamedPaths = new Set<string>();
 
-  // First pass: Rename all files and collect directories
-  debugLog("Starting file renaming and directory collection...");
   for (const filePath of filesToProcess) {
-    await renameFile(filePath, phase, convertFn);
-    const dir = path.dirname(filePath);
-    directoriesToRename.add(dir);
+    const newPath =
+      phase === "phase1"
+        ? getNewPathPhaseOne(filePath, absoluteDirectoryPath, casingFn)
+        : getNewPathPhaseTwo(filePath, absoluteDirectoryPath);
+
+    logger.debug(`${phase} - Old path: ${filePath}`);
+    logger.debug(`${phase} - New path: ${newPath}`);
+
+    if (newPath !== filePath) {
+      await moveFile(filePath, newPath);
+      renamedPaths.add(path.dirname(filePath)); // Add the old directory path
+    }
   }
 
-  debugLog(`Collected ${directoriesToRename.size} directories to rename.`);
+  logger.info(`Removing empty directories after ${phase}`);
+  await removeEmptyDirectories(absoluteDirectoryPath, renamedPaths);
+}
 
-  // Second pass: Rename all collected directories (bottom-up)
-  debugLog("Starting directory renaming...");
-  const sortedDirs = Array.from(directoriesToRename).sort(
+async function removeEmptyDirectories(
+  baseDirectory: string,
+  renamedPaths: Set<string>
+) {
+  const sortedPaths = Array.from(renamedPaths).sort(
     (a, b) => b.length - a.length
   );
-  for (const [index, dir] of sortedDirs.entries()) {
-    debugLog(`Processing directory ${index + 1}/${sortedDirs.length}: ${dir}`);
 
-    if (!(await fs.pathExists(dir))) {
-      debugLog(`Skipping non-existent directory: ${dir}`);
+  for (const dirPath of sortedPaths) {
+    if (!dirPath.startsWith(baseDirectory)) {
       continue;
     }
 
-    const newDirName = renamePathSegment(path.basename(dir), convertFn, phase);
-    const newDirPath = path.join(path.dirname(dir), newDirName);
-
-    if (newDirPath !== dir) {
-      try {
-        debugLog(`Attempting to rename: ${dir} -> ${newDirPath}`);
-        await fs.ensureDir(path.dirname(newDirPath));
-        await fs.rename(dir, newDirPath);
-        debugLog(`Successfully renamed directory: ${dir} -> ${newDirPath}`);
-      } catch (error) {
-        console.error(
-          `Error renaming directory: ${dir} -> ${newDirPath}`,
-          error
-        );
+    try {
+      const files = await fs.readdir(dirPath);
+      if (files.length === 0) {
+        await fs.rmdir(dirPath);
+        logger.debug(`Removed empty directory: ${dirPath}`);
       }
-    } else {
-      debugLog(`No renaming needed for: ${dir}`);
+    } catch (error) {
+      logger.error(`Error processing directory ${dirPath}: ${error}`);
     }
   }
-  debugLog("Directory renaming completed.");
 }
 
-async function renameFile(
+function getNewPathPhaseOne(
   filePath: string,
-  phase: "phase1" | "phase2",
-  convertFn: (str: string) => string
-) {
-  const dir = path.dirname(filePath);
-  const ext = path.extname(filePath);
-  const baseName = path.basename(filePath, ext);
+  basePath: string,
+  casingFn: (str: string) => string
+): string {
+  const relativePath = path.relative(basePath, filePath);
+  const segments = relativePath.split(path.sep);
+  const newSegments = segments.map((segment, index) => {
+    // Apply special handling for the last segment (file name)
+    if (index === segments.length - 1) {
+      return convertFileName(segment, casingFn);
+    }
+    return convertSegment(segment, casingFn);
+  });
+  return path.join(basePath, ...newSegments);
+}
 
-  if (shouldPreserveName(baseName)) {
-    return;
+export function convertFileName(
+  fileName: string,
+  casingFn: (str: string) => string
+): string {
+  const ext = path.extname(fileName);
+  const baseName = path.basename(fileName, ext);
+
+  if (baseName.startsWith("_")) {
+    return fileName; // Return the original file name if it starts with an underscore (Next.js standard)
   }
 
-  if (phase === "phase1") {
-    if (/[A-Z]/.test(baseName)) {
-      const newFileName = convertFn(baseName) + ext;
-      const caseInsensitiveNewFileName = newFileName.toLowerCase();
+  const convertedBaseName = convertSegment(baseName, casingFn);
+  return convertedBaseName + ext;
+}
 
-      if (
-        baseName.toLowerCase() === caseInsensitiveNewFileName.replace(ext, "")
-      ) {
-        const newFilePath = path.join(
-          dir,
-          convertFn(baseName) + tempSuffix + ext
+export function convertSegment(
+  segment: string,
+  casingFn: (str: string) => string
+): string {
+  /** Preserve Next.js route parameters */
+  if (segment.startsWith("[")) {
+    return segment;
+  }
+
+  const converted = casingFn(segment);
+
+  if (converted === segment) {
+    // If the conversion didn't change anything, return as is
+    return converted;
+  } else if (converted.toLowerCase() === segment.toLowerCase()) {
+    // If they're the same when lowercased, but different in original form,
+    // add the temp suffix
+    return converted + TEMP_SUFFIX;
+  } else {
+    // If they're different even when lowercased, return the converted version
+    return converted;
+  }
+}
+
+function getNewPathPhaseTwo(filePath: string, basePath: string): string {
+  const relativePath = path.relative(basePath, filePath);
+  const segments = relativePath.split(path.sep);
+  const newSegments = segments.map((segment, index) => {
+    if (index === segments.length - 1) {
+      // Handle the last segment (file name) separately
+      const ext = path.extname(segment);
+      const baseName = path.basename(segment, ext);
+      if (baseName.endsWith(TEMP_SUFFIX)) {
+        const newBaseName = baseName
+          .slice(0, -TEMP_SUFFIX.length)
+          .toLowerCase();
+        logger.debug(
+          `Phase 2 conversion: ${baseName}${ext} -> ${newBaseName}${ext}`
         );
-        await moveFile(filePath, newFilePath);
-      } else {
-        const newFilePath = path.join(dir, newFileName);
-        await moveFile(filePath, newFilePath);
+        return newBaseName + ext;
       }
+    } else if (segment.endsWith(TEMP_SUFFIX)) {
+      const newSegment = segment.slice(0, -TEMP_SUFFIX.length).toLowerCase();
+      logger.debug(`Phase 2 conversion: ${segment} -> ${newSegment}`);
+      return newSegment;
+    } else if (segment.includes(TEMP_SUFFIX)) {
+      logger.warn(`Unexpected TEMP_SUFFIX in middle of segment: ${segment}`);
     }
-  } else if (phase === "phase2") {
-    if (baseName.endsWith(tempSuffix)) {
-      const newFileName = baseName.slice(0, -tempSuffix.length) + ext;
-      const newFilePath = path.join(dir, newFileName);
-      await moveFile(filePath, newFilePath);
-    }
-  }
+    return segment;
+  });
+  return path.join(basePath, ...newSegments);
 }
 
 async function moveFile(oldPath: string, newPath: string) {
-  await fs.ensureDir(path.dirname(newPath));
-  await fs.move(oldPath, newPath, { overwrite: false });
+  try {
+    await fs.ensureDir(path.dirname(newPath));
+    await fs.move(oldPath, newPath, { overwrite: false });
+    logger.debug(`Moved: ${oldPath} -> ${newPath}`);
+  } catch (error) {
+    logger.error(
+      `Failed to move file: ${oldPath} -> ${newPath}. Error: ${error}`
+    );
+  }
 }

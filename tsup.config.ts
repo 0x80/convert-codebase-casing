@@ -6,7 +6,7 @@ export default defineConfig({
       "src/codemods/convert-import-export-kebab.ts",
     "codemods/convert-import-export-snake":
       "src/codemods/convert-import-export-snake.ts",
-    "convert-codebase-casing": "src/convert-codebase-casing.ts",
+    main: "src/main.ts",
   },
   format: ["esm", "cjs"],
   target: "node18",

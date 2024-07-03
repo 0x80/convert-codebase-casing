@@ -8,7 +8,7 @@
     "docs"
   ],
   "bin": {
-    "convert-codebase-casing": "dist/convert-codebase-casing.mjs"
+    "convert-codebase-casing": "dist/main.mjs"
   },
   "scripts": {
     "build": "tsup-node",
@@ -54,9 +54,7 @@
     "@types/babel__core": "^7.20.5",
     "@types/fs-extra": "^11.0.4",
     "@types/jscodeshift": "^0.11.11",
-    "@types/meow": "^6.0.0",
     "@types/node": "^20.14.2",
-    "@types/parse-gitignore": "^1.0.2",
     "@types/source-map-support": "^0.5.10",
     "eslint": "^8",
     "eslint-config-0x80": "^0.0.0",

@@ -1,28 +1,28 @@
 import Runner from "jscodeshift/src/Runner.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { debugLog } from "./debug-log";
 import { getFilesToProcess } from "./get-files-to-process";
+import { logger } from "./logger";
 
 export async function runCodemod(
   directoryPath: string,
   gitignorePath: string,
-  casingType: "kebab" | "snake",
-  targetFileExtensions: string[]
+  casingType: "kebab" | "snake"
 ) {
-  debugLog("Running codemod");
-  debugLog("Directory:", directoryPath);
-  debugLog("Gitignore path:", gitignorePath);
-  debugLog("Casing type:", casingType);
-  debugLog("Target file extensions:", targetFileExtensions);
+  logger.debug("Running codemod");
+  logger.debug("Directory:", directoryPath);
+  logger.debug("Gitignore path:", gitignorePath);
+  logger.debug("Casing type:", casingType);
+
+  const codeExtensions = ["ts", "tsx", "js", "jsx", "mjs", "cjs"];
 
   const inputFiles = await getFilesToProcess(
     directoryPath,
     gitignorePath,
-    ["ts", "tsx", "js", "jsx"] // only code here
+    codeExtensions
   );
 
-  debugLog(`Found ${inputFiles.length} files to process`);
+  logger.debug(`Found ${inputFiles.length} files to process`);
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -33,26 +33,15 @@ export async function runCodemod(
       : "./codemods/convert-import-export-snake.cjs"
   );
 
-  debugLog("Codemod path:", codemodPath);
+  logger.debug("Codemod path:", codemodPath);
 
   const result = await Runner.run(codemodPath, inputFiles, {
     parser: "tsx",
-    verbose: 2,
-    dry: false,
-    print: false,
+    verbose: 1,
     babel: true,
-    extensions: "ts,tsx,js,jsx",
-    // extensions: targetFileExtensions.map((ext) => ext.slice(1)).join(","),
-    ignorePattern: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/build/**",
-      "**/public/**",
-    ],
-    // ignoreConfig: gitignorePath,
+    extensions: codeExtensions.join(","),
     runInBand: true,
   });
 
-  debugLog("Codemod result:", result);
   return result;
 }

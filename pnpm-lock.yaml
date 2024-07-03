@@ -54,15 +54,9 @@ importers:
       '@types/jscodeshift':
         specifier: ^0.11.11
         version: 0.11.11
-      '@types/meow':
-        specifier: ^6.0.0
-        version: 6.0.0
       '@types/node':
         specifier: ^20.14.2
         version: 20.14.2
-      '@types/parse-gitignore':
-        specifier: ^1.0.2
-        version: 1.0.2
       '@types/source-map-support':
         specifier: ^0.5.10
         version: 0.5.10
@@ -786,18 +780,11 @@ packages:
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
 
-  '@types/meow@6.0.0':
-    resolution: {integrity: sha512-RzAdIcBCzg6A61SjQGmQHsJ6nEIsGdd2cAw/MAdBwwI0SZg4iGbtpto44BkY6Vq8SDsiqcCV2DowmHj8v+K1gw==}
-    deprecated: This is a stub types definition. meow provides its own type definitions, so you do not need this installed.
-
   '@types/ms@0.7.34':
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
 
   '@types/node@20.14.2':
     resolution: {integrity: sha512-xyu6WAMVwv6AKFLB+e/7ySZVr/0zLCzOa7rSpq6jNwpqOrUbcACDWC+53d4n2QHOnDou0fbIsg8wZu/sxrnI4Q==}
-
-  '@types/parse-gitignore@1.0.2':
-    resolution: {integrity: sha512-AQwj+lNTWI7y1kkMe8qLByiToXoXs/du70qGFIHJZaJUVrF5jB8QzvWmLyR1VWYqRagpY8ABrqAjs7uHsJnVBQ==}
 
   '@types/semver@7.5.8':
     resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
@@ -2841,19 +2828,11 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.2
 
-  '@types/meow@6.0.0':
-    dependencies:
-      meow: 13.2.0
-
   '@types/ms@0.7.34': {}
 
   '@types/node@20.14.2':
     dependencies:
       undici-types: 5.26.5
-
-  '@types/parse-gitignore@1.0.2':
-    dependencies:
-      '@types/node': 20.14.2
 
   '@types/semver@7.5.8': {}
 
