@@ -1,6 +1,3 @@
-import type { ChalkInstance } from "chalk";
-import chalk from "chalk";
-
 type LogLevel = "error" | "warn" | "info" | "debug";
 
 type ACTUAL_ANY = any;
@@ -21,35 +18,31 @@ class Logger {
     return levels.indexOf(messageLevel) <= levels.indexOf(this.level);
   }
 
-  private log(
-    level: LogLevel,
-    color: ChalkInstance,
-    ...messages: ACTUAL_ANY[]
-  ) {
+  private log(level: LogLevel, ...messages: ACTUAL_ANY[]) {
     if (this.shouldLog(level)) {
       const timestamp = new Date().toISOString();
       const formattedMessage = messages
         .map((m) => (typeof m === "string" ? m : JSON.stringify(m)))
         .join(" ");
-      console.log(`${chalk.gray(timestamp)} ${color(formattedMessage)}`);
+      console.log(`${timestamp} [${level.toUpperCase()}] ${formattedMessage}`);
     }
   }
 
   error(err: Error | string, ...messages: ACTUAL_ANY[]) {
     const errorMessage = err instanceof Error ? err.message : err;
-    this.log("error", chalk.red, errorMessage, ...messages);
+    this.log("error", errorMessage, ...messages);
   }
 
   warn(...messages: ACTUAL_ANY[]) {
-    this.log("warn", chalk.yellow, ...messages);
+    this.log("warn", ...messages);
   }
 
   info(...messages: ACTUAL_ANY[]) {
-    this.log("info", chalk.blue, ...messages);
+    this.log("info", ...messages);
   }
 
   debug(...messages: ACTUAL_ANY[]) {
-    this.log("debug", chalk.green, ...messages);
+    this.log("debug", ...messages);
   }
 }
 
