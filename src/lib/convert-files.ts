@@ -92,8 +92,13 @@ export function convertFileName(
   const ext = path.extname(fileName);
   const baseName = path.basename(fileName, ext);
 
-  if (baseName.startsWith("_")) {
-    return fileName; // Return the original file name if it starts with an underscore (Next.js standard)
+  if (
+    /** Preserve Next.js _app.tsx etc */
+    baseName.startsWith("_") ||
+    /** Preserve files like README or LICENSE */
+    baseName === baseName.toUpperCase()
+  ) {
+    return fileName;
   }
 
   const convertedBaseName = convertSegment(baseName, casingFn);

@@ -37,8 +37,8 @@ export async function runCodemod(
 
   const result = await Runner.run(codemodPath, inputFiles, {
     parser: "tsx",
-    verbose: 1,
-    babel: true,
+    // verbose: 1,
+    // babel: true,
     extensions: codeExtensions.join(","),
     runInBand: true,
   });
