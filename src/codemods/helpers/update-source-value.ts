@@ -2,6 +2,7 @@ import path from "node:path";
 import type { JSCodeshift } from "jscodeshift";
 import type { ASTNode, StringLiteral, Literal } from "jscodeshift";
 import { targetPathPrefixes } from "../../lib/config";
+import { convertFileName, convertSegment } from "../../lib/convert-files";
 
 export function getUpdatedSource<T extends ASTNode>(
   j: JSCodeshift,
@@ -44,25 +45,4 @@ function transformPath(
 
   const newPath = prefix + newSegments.join(path.sep);
   return newPath;
-}
-
-function convertFileName(
-  fileName: string,
-  casingFn: (str: string) => string
-): string {
-  const ext = path.extname(fileName);
-  const baseName = path.basename(fileName, ext);
-  const convertedBaseName = convertSegment(baseName, casingFn);
-  return convertedBaseName + ext;
-}
-
-function convertSegment(
-  segment: string,
-  casingFn: (str: string) => string
-): string {
-  if (segment.startsWith("[")) {
-    return segment;
-  }
-
-  return casingFn(segment);
 }
