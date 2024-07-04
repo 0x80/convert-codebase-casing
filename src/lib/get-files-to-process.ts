@@ -40,7 +40,7 @@ export async function getFilesToProcess(
     }
 
     if (pattern.endsWith("/")) {
-      patterns.push(`${pattern}**`); // Add version with ** appended for directories
+      patterns.push(`**/${pattern}**`); // Add version with ** appended for directories
     }
 
     return patterns;
@@ -54,6 +54,8 @@ export async function getFilesToProcess(
 
   logger.debug("Glob patterns:", globPatterns);
   logger.debug("Ignored patterns:", globIgnorePatterns);
+
+  process.exit(0);
 
   // Use glob to find all files, respecting .gitignore
   const files = await glob(globPatterns, {
