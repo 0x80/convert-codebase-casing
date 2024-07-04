@@ -102,6 +102,11 @@ export function convertSegment(
     return segment;
   }
 
+  /** Directories that start with _ are also likely named like this on purpose */
+  if (segment.startsWith("_")) {
+    return segment;
+  }
+
   const converted = casingFn(segment);
 
   if (converted === segment) {
