@@ -55,8 +55,6 @@ export async function getFilesToProcess(
   logger.debug("Glob patterns:", globPatterns);
   logger.debug("Ignored patterns:", globIgnorePatterns);
 
-  process.exit(0);
-
   // Use glob to find all files, respecting .gitignore
   const files = await glob(globPatterns, {
     cwd: directoryPath,

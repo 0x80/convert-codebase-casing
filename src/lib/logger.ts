@@ -20,11 +20,10 @@ class Logger {
 
   private log(level: LogLevel, ...messages: ACTUAL_ANY[]) {
     if (this.shouldLog(level)) {
-      const timestamp = new Date().toISOString();
       const formattedMessage = messages
         .map((m) => (typeof m === "string" ? m : JSON.stringify(m)))
         .join(" ");
-      console.log(`${timestamp} [${level.toUpperCase()}] ${formattedMessage}`);
+      console.log(`[${level.toUpperCase()}] ${formattedMessage}`);
     }
   }
 
