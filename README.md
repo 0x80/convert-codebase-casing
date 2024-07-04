@@ -3,10 +3,11 @@
 Convert an entire JS/TS codebase from camel-case to kebab-case or snake-case,
 including all code imports and exports, in a matter of seconds.
 
-> !!DISCLAIMER After converting a few codebases I realize that this is actually
-> a very complex problem and I can not anticipate every possible scenario. I am
-> not willing to spend a lot of time updating this to fit everyone's needs, so
-> you might have to tweak some things yourself.
+> ⚠️ DISCLAIMER ⚠️ After converting a number of codebases I realize that this is
+> actually a very complex problem and I can not anticipate every possible
+> scenario. Do not expect this to cover everything fully, although you might be
+> lucky. Please expect to make a few manual adjustments afterwards. See
+> [known limitations](#known-limitations)
 
 ## Motivation
 
@@ -27,19 +28,28 @@ In addition, lower-case file names do not suffer from potential conflicts that
 case-insensitive file systems like MacOS can cause with version control systems
 like Git.
 
-It can be extremely tedious to change file casing on an already existing
-codebase, so when inheriting a codebase or joining an existing project, most
-teams will not even consider this.
+It can be extremely tedious and time-consuming to change file casing on an
+already existing codebase, so when inheriting a codebase or joining an existing
+project, most teams will not even consider this.
 
-The aim of this module is to make file-casing conversion almost trivial, by
-converting both the files and the import/export statements in the code.
+The aim of this module is to make file-casing conversion possible with a minimal
+amount of suffering. It will attempt to convert both the files and the
+import/export statements in the code as much as possible, but expect to make a
+few manual adjustments afterwards because there are simply too many possible
+variations to consider.
 
 ## Features
 
 - Convert all files and folders, including assets
-- Convert require and import statements
+- Convert import and export statements including:
+  - `import ... from`
+  - `export ... from`
+  - `import()`
+  - `require(...)`
+  - `new URL(...)`
 - Preserve page route parameters (Next.js)
-- Preserve files that start with underscore (Next.js)
+- Preserve files that start with underscore like `_app.tsx` (Next.js)
+- Preserve file names that are all upper-case like `README.md`
 
 ## How it works
 
@@ -79,10 +89,24 @@ manually.
 
 ## Known Limitations
 
-### Dynamic imports
+### Nested call expressions not found
 
-It seems that jscodeshift, which is being used for the codemod, is not modern
-enough to process dynamic imports correctly.
+It seems that jscodeshift (which is what the codemods are based on) has no way
+to find call expressions that are nested. This means that while this code will
+look for `import()` and `new URL()` they will not be detected in the following
+cases.
+
+```ts
+const Lightbox = dynamic(() => import("~/components/Universal/Lightbox"), {
+  ssr: false,
+});
+```
+
+```ts
+await fetch(
+  new URL(`./../../assets/fonts/Figtree-Medium.ttf`, import.meta.url)
+).then((res) => res.arrayBuffer());
+```
 
 ### Imports in styling and other non-code files
 
