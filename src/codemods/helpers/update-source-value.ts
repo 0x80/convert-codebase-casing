@@ -1,17 +1,26 @@
 import path from "path";
 
 // New function that doesn't mutate, but returns the new value if it should be changed
-export function getUpdatedSourceValue(
-  sourceValue: string,
-  transformFn: (str: string) => string
-): string | null {
-  const transformed = transformPath(sourceValue, transformFn);
+import type { JSCodeshift } from "jscodeshift";
+import type { ASTNode, StringLiteral, Literal } from "jscodeshift";
 
-  if (transformed !== sourceValue) {
-    return transformed;
+export function getUpdatedSource<T extends ASTNode>(
+  j: JSCodeshift,
+  source: T,
+  casingFn: (str: string) => string
+): StringLiteral | Literal | null {
+  if ("value" in source && typeof source.value === "string") {
+    const newValue = transformPath(source.value, casingFn);
+    if (newValue !== source.value) {
+      // Check the type of the original source to determine which type to return
+      if (source.type === "StringLiteral") {
+        return j.stringLiteral(newValue);
+      } else if (source.type === "Literal") {
+        return j.literal(newValue);
+      }
+    }
   }
-
-  return null; // Return null if no change is needed
+  return null;
 }
 
 /** All prefixes that would be considered imports from local files. */
