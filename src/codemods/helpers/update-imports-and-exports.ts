@@ -1,6 +1,7 @@
 import type { JSCodeshift, StringLiteral } from "jscodeshift";
 import { getUpdatedSource } from "./update-source-value";
 import type { TODO } from "../../lib/types";
+import { logger } from "../../lib/logger";
 
 export default function updateImportsAndExports(
   j: JSCodeshift,
@@ -60,29 +61,17 @@ export default function updateImportsAndExports(
 
   // Handle new URL()
   root.find(j.NewExpression, { callee: { name: "URL" } }).forEach((path) => {
-    const arg = path.node.arguments[0] as StringLiteral;
-
-    if (typeof arg.value === "string") {
-      console.log("+++ found new URL()", arg.value);
-      const newSource = getUpdatedSource(j, arg, casingFn);
-      if (newSource) {
-        path.node.arguments[0] = newSource;
-        hasChanges = true;
-      }
-    } else {
-      console.log("+++ found non string URL() in", path.name);
+    const newSource = getUpdatedSource(j, path.node.arguments[0], casingFn);
+    if (newSource) {
+      path.node.arguments[0] = newSource;
+      hasChanges = true;
     }
   });
 
   // Handle import()
   root.find(j.ImportExpression).forEach((path) => {
-    console.log(
-      "Found import expression",
-      path.node.source,
-      (path.node.source as StringLiteral).value
-    );
-
     const newSource = getUpdatedSource(j, path.node.source, casingFn);
+
     if (newSource) {
       path.node.source = newSource;
       hasChanges = true;
@@ -93,14 +82,14 @@ export default function updateImportsAndExports(
   root
     .find(j.CallExpression, { callee: { name: "dynamic" } })
     .forEach((path) => {
-      console.log("Found dynamic() call in ", path.name);
+      logger.debug("Found dynamic() call in ", path.name);
 
       const firstArg = path.node.arguments.at(0);
       if (firstArg?.type === "ArrowFunctionExpression") {
-        console.log("Has ArrowFunctionExpression");
+        logger.debug("Has ArrowFunctionExpression");
 
         if (firstArg.body.type === "ImportExpression") {
-          console.log("Has ImportExpression");
+          logger.debug("Has ImportExpression");
 
           const newSource = getUpdatedSource(j, firstArg.body.source, casingFn);
           if (newSource) {
