@@ -8,6 +8,7 @@ import { commitChanges } from "./lib/commit-changes";
 import { renameFilesAndFolders } from "./lib/convert-files";
 import { logger } from "./lib/logger";
 import { runCodemod } from "./lib/run-codemod";
+import { getFilesToProcess } from "./lib/get-files-to-process";
 
 sourceMaps.install();
 
@@ -36,6 +37,7 @@ const cli = meow(
       casing: {
         type: "string",
         shortFlag: "c",
+        choices: ["kebab", "snake"],
         default: "kebab",
       },
       logLevel: {
@@ -76,29 +78,42 @@ async function run() {
     process.exit(1);
   }
 
+  const ignorePatterns: string[] = [];
+
   const casingFn = getCasingFunction(casingType);
 
-  logger.info("Rename phase 1/2...");
-  await renameFilesAndFolders(directoryPath, gitignorePath, "phase1", casingFn);
+  {
+    logger.info("Rename phase 1/2...");
+    const filePaths = await getFilesToProcess(ignorePatterns);
+    logger.info(`Found ${filePaths.length} files to process`);
 
-  logger.info("Commit changes");
-  await commitChanges("Rename files and folders phase 1/2");
+    await renameFilesAndFolders(directoryPath, filePaths, "phase1", casingFn);
 
-  logger.info("Rename phase 2/2...");
-  await renameFilesAndFolders(directoryPath, gitignorePath, "phase2", casingFn);
+    logger.info("Commit changes");
+    await commitChanges("Rename files and folders phase 1/2");
+  }
 
-  logger.info("Commit changes");
-  await commitChanges("Rename files and folders phase 2/2");
+  {
+    logger.info("Rename phase 2/2...");
+    const filePaths = await getFilesToProcess(ignorePatterns);
+    logger.info(`Found ${filePaths.length} files to process`);
 
-  logger.info("Running codemod to update import/export statements");
-  await runCodemod(
-    directoryPath,
-    gitignorePath,
-    casingType as "kebab" | "snake"
-  );
+    await renameFilesAndFolders(directoryPath, filePaths, "phase2", casingFn);
 
-  logger.info("Commit changes");
-  await commitChanges("Update import and export statements");
+    logger.info("Commit changes");
+    await commitChanges("Rename files and folders phase 2/2");
+  }
+
+  {
+    logger.info("Running codemod to update import/export statements");
+
+    const filePaths = await getFilesToProcess(ignorePatterns);
+
+    await runCodemod(filePaths, casingType as "kebab" | "snake");
+
+    logger.info("Commit changes");
+    await commitChanges("Update import and export statements");
+  }
 
   logger.info("Conversion completed!");
 }

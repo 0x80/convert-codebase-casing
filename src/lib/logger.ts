@@ -23,7 +23,12 @@ class Logger {
       const formattedMessage = messages
         .map((m) => (typeof m === "string" ? m : JSON.stringify(m)))
         .join(" ");
-      console.log(`[${level.toUpperCase()}] ${formattedMessage}`);
+
+      if (level === "error") {
+        console.error(formattedMessage);
+      } else {
+        console.log(formattedMessage);
+      }
     }
   }
 

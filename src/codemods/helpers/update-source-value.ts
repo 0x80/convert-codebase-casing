@@ -1,8 +1,7 @@
-import path from "path";
-
-// New function that doesn't mutate, but returns the new value if it should be changed
+import path from "node:path";
 import type { JSCodeshift } from "jscodeshift";
 import type { ASTNode, StringLiteral, Literal } from "jscodeshift";
+import { targetPathPrefixes } from "../../lib/config";
 
 export function getUpdatedSource<T extends ASTNode>(
   j: JSCodeshift,
@@ -23,16 +22,13 @@ export function getUpdatedSource<T extends ASTNode>(
   return null;
 }
 
-/** All prefixes that would be considered imports from local files. */
-export const targetPathPrefixes = ["./", "../", "~/", "@/", "@src/", "#"];
-
 function transformPath(
   filePath: string,
   casingFn: (str: string) => string
 ): string {
   const prefix = targetPathPrefixes.find((p) => filePath.startsWith(p));
+
   if (!prefix) {
-    // console.log("Ignoring path", filePath);
     return filePath;
   }
 
@@ -47,7 +43,6 @@ function transformPath(
   });
 
   const newPath = prefix + newSegments.join(path.sep);
-  // console.log("Transform path", filePath, newPath);
   return newPath;
 }
 

@@ -1,41 +1,33 @@
 import fs from "fs-extra";
 import path from "path";
 import { logger } from "./logger";
-import { getFilesToProcess } from "./get-files-to-process";
 
 const TEMP_SUFFIX = "__tmp";
 
 export async function renameFilesAndFolders(
   directoryPath: string,
-  gitignorePath: string,
+  paths: string[],
   phase: "phase1" | "phase2",
   casingFn: (str: string) => string
 ) {
   const absoluteDirectoryPath = path.resolve(directoryPath);
-  logger.info(
-    `Starting renameFilesAndFolders - Phase: ${phase}, Directory: ${absoluteDirectoryPath}`
-  );
-
-  const filesToProcess = await getFilesToProcess(
-    absoluteDirectoryPath,
-    gitignorePath
-  );
-  logger.info(`Found ${filesToProcess.length} files to process`);
 
   const renamedPaths = new Set<string>();
 
-  for (const filePath of filesToProcess) {
+  for (const oldPath of paths) {
     const newPath =
       phase === "phase1"
-        ? getNewPathPhaseOne(filePath, absoluteDirectoryPath, casingFn)
-        : getNewPathPhaseTwo(filePath, absoluteDirectoryPath);
+        ? getNewPathPhaseOne(oldPath, casingFn)
+        : getNewPathPhaseTwo(oldPath);
 
-    logger.debug(`${phase} - Old path: ${filePath}`);
-    logger.debug(`${phase} - New path: ${newPath}`);
+    logger.debug(`Move to ${newPath}`);
 
-    if (newPath !== filePath) {
-      await moveFile(filePath, newPath);
-      renamedPaths.add(path.dirname(filePath)); // Add the old directory path
+    if (newPath !== oldPath) {
+      await moveFile(
+        path.join(directoryPath, oldPath),
+        path.join(directoryPath, newPath)
+      );
+      renamedPaths.add(path.dirname(oldPath)); // Add the old directory path
     }
   }
 
@@ -51,30 +43,26 @@ async function removeEmptyDirectories(
     (a, b) => b.length - a.length
   );
 
-  for (const dirPath of sortedPaths) {
-    if (!dirPath.startsWith(baseDirectory)) {
-      continue;
-    }
-
+  for (const relativePath of sortedPaths) {
     try {
-      const files = await fs.readdir(dirPath);
+      const absolutePath = path.join(baseDirectory, relativePath);
+      const files = await fs.readdir(absolutePath);
+
       if (files.length === 0) {
-        await fs.rmdir(dirPath);
-        logger.debug(`Removed empty directory: ${dirPath}`);
+        await fs.rmdir(absolutePath);
+        logger.debug(`Removed empty directory: ${relativePath}`);
       }
     } catch (error) {
-      logger.error(`Error processing directory ${dirPath}: ${error}`);
+      logger.error(`Error processing directory ${relativePath}: ${error}`);
     }
   }
 }
 
 function getNewPathPhaseOne(
   filePath: string,
-  basePath: string,
   casingFn: (str: string) => string
 ): string {
-  const relativePath = path.relative(basePath, filePath);
-  const segments = relativePath.split(path.sep);
+  const segments = filePath.split(path.sep);
   const newSegments = segments.map((segment, index) => {
     // Apply special handling for the last segment (file name)
     if (index === segments.length - 1) {
@@ -82,7 +70,7 @@ function getNewPathPhaseOne(
     }
     return convertSegment(segment, casingFn);
   });
-  return path.join(basePath, ...newSegments);
+  return path.join(...newSegments);
 }
 
 export function convertFileName(
@@ -129,9 +117,9 @@ export function convertSegment(
   }
 }
 
-function getNewPathPhaseTwo(filePath: string, basePath: string): string {
-  const relativePath = path.relative(basePath, filePath);
-  const segments = relativePath.split(path.sep);
+function getNewPathPhaseTwo(filePath: string): string {
+  const segments = filePath.split(path.sep);
+
   const newSegments = segments.map((segment, index) => {
     if (index === segments.length - 1) {
       // Handle the last segment (file name) separately
@@ -155,7 +143,8 @@ function getNewPathPhaseTwo(filePath: string, basePath: string): string {
     }
     return segment;
   });
-  return path.join(basePath, ...newSegments);
+
+  return path.join(...newSegments);
 }
 
 async function moveFile(oldPath: string, newPath: string) {

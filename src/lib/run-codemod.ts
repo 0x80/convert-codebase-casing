@@ -1,28 +1,15 @@
 import Runner from "jscodeshift/src/Runner.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getFilesToProcess } from "./get-files-to-process";
 import { logger } from "./logger";
 
 export async function runCodemod(
-  directoryPath: string,
-  gitignorePath: string,
+  filePaths: string[],
   casingType: "kebab" | "snake"
 ) {
   logger.debug("Running codemod");
-  logger.debug("Directory:", directoryPath);
-  logger.debug("Gitignore path:", gitignorePath);
-  logger.debug("Casing type:", casingType);
 
   const codeExtensions = ["ts", "tsx", "js", "jsx", "mjs", "cjs"];
-
-  const inputFiles = await getFilesToProcess(
-    directoryPath,
-    gitignorePath,
-    codeExtensions
-  );
-
-  logger.debug(`Found ${inputFiles.length} files to process`);
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -35,10 +22,9 @@ export async function runCodemod(
 
   logger.debug("Codemod path:", codemodPath);
 
-  const result = await Runner.run(codemodPath, inputFiles, {
+  const result = await Runner.run(codemodPath, filePaths, {
     parser: "tsx",
     // verbose: 1,
-    // babel: true,
     extensions: codeExtensions.join(","),
     runInBand: true,
   });
