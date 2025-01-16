@@ -56,6 +56,7 @@
     "@types/jscodeshift": "^0.11.11",
     "@types/node": "^20.14.2",
     "@types/source-map-support": "^0.5.10",
+    "del-cli": "^6.0.0",
     "eslint": "^8",
     "eslint-config-0x80": "^0.0.0",
     "prettier": "^3.3.2",
