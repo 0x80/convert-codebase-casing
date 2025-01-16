@@ -14,6 +14,9 @@ importers:
       globby:
         specifier: ^14.0.2
         version: 14.0.2
+      jscodeshift:
+        specifier: ^0.15.2
+        version: 0.15.2
       meow:
         specifier: ^13.2.0
         version: 13.2.0
@@ -60,9 +63,6 @@ importers:
       eslint-config-0x80:
         specifier: ^0.0.0
         version: 0.0.0(eslint@8.57.0)(prettier@3.3.2)(typescript@5.5.3)
-      jscodeshift:
-        specifier: ^0.15.2
-        version: 0.15.2
       prettier:
         specifier: ^3.3.2
         version: 3.3.2
