@@ -17,10 +17,10 @@ export async function getGitignorePatterns(
     gitignorePath = directoryGitignorePath;
     /** .gitignore found in the specified directory */
   } else {
-    logger.error(
+    logger.info(
       ".gitignore file not found in both CWD and specified directory."
     );
-    process.exit(1);
+    return [];
   }
 
   return fs
