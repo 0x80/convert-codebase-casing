@@ -1,6 +1,6 @@
 {
   "name": "convert-codebase-casing",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Convert an entire JS/TS codebase to either kebab-case or snake-case",
   "type": "module",
   "files": [
