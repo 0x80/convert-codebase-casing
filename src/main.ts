@@ -1,14 +1,13 @@
 #!/usr/bin/env node
-import sourceMaps from "source-map-support";
 import meow from "meow";
-import fs from "fs-extra";
-import path from "path";
-import { getCasingFunction } from "./lib/get-casing-function";
+import sourceMaps from "source-map-support";
 import { commitChanges } from "./lib/commit-changes";
 import { renameFilesAndFolders } from "./lib/convert-files";
+import { getCasingFunction } from "./lib/get-casing-function";
+import { getFilesToProcess } from "./lib/get-files-to-process";
+import { getGitignorePatterns } from "./lib/get-gitignore-patterns";
 import { logger } from "./lib/logger";
 import { runCodemod } from "./lib/run-codemod";
-import { getFilesToProcess } from "./lib/get-files-to-process";
 
 sourceMaps.install();
 
@@ -60,16 +59,7 @@ async function run() {
     process.exit(1);
   }
 
-  const gitignorePath = path.join(directoryPath, ".gitignore");
-
-  // Check if .gitignore exists
-  if (!(await fs.pathExists(gitignorePath))) {
-    logger.error(`Error: .gitignore file not found at ${gitignorePath}`);
-    logger.error(
-      "A .gitignore file is required to determine which files to process."
-    );
-    process.exit(1);
-  }
+  const ignorePatterns = await getGitignorePatterns(directoryPath);
 
   const casingType = cli.flags.casing;
 
@@ -77,8 +67,6 @@ async function run() {
     logger.error("Error: Invalid casing type. Use 'kebab' or 'snake'.");
     process.exit(1);
   }
-
-  const ignorePatterns: string[] = [];
 
   const casingFn = getCasingFunction(casingType);
 
