@@ -9,6 +9,12 @@ including all code imports and exports, in a matter of seconds.
 > lucky. Please expect to make a few manual adjustments afterwards. See
 > [known limitations](#known-limitations)
 
+⚠️ There seems to be a bug with the codemod. Only run the command from the
+directory that you would like to convert. So if you only want to convert your
+`src` directory, run the command from there with `.` as the path argument. You
+might also have to do a find/replace on resulting path imports, stripping the
+`__tmp` suffix. But other than that things still seem to work.
+
 ## Motivation
 
 Many TS/JS repositories name their files literally after the things they export,
