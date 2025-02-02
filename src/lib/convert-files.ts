@@ -10,8 +10,6 @@ export async function renameFilesAndFolders(
   phase: "phase1" | "phase2",
   casingFn: (str: string) => string
 ) {
-  const absoluteDirectoryPath = path.resolve(directoryPath);
-
   const renamedPaths = new Set<string>();
 
   for (const oldPath of paths) {
@@ -32,7 +30,7 @@ export async function renameFilesAndFolders(
   }
 
   logger.info(`Removing empty directories after ${phase}`);
-  await removeEmptyDirectories(absoluteDirectoryPath, renamedPaths);
+  await removeEmptyDirectories(directoryPath, renamedPaths);
 }
 
 async function removeEmptyDirectories(

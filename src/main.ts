@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import meow from "meow";
+import path from "path";
+import { take } from "remeda";
 import sourceMaps from "source-map-support";
 import { commitChanges } from "./lib/commit-changes";
 import { renameFilesAndFolders } from "./lib/convert-files";
@@ -52,14 +54,16 @@ const cli = meow(
 logger.setLevel(cli.flags.logLevel as "error" | "warn" | "info" | "debug");
 
 async function run() {
-  const directoryPath = cli.input[0];
+  const argsPath = cli.input[0];
 
-  if (!directoryPath) {
+  if (!argsPath) {
     logger.error("Please specify a directory path.");
     process.exit(1);
   }
 
-  const ignorePatterns = await getGitignorePatterns(directoryPath);
+  const absolutePath = path.resolve(argsPath);
+
+  const ignorePatterns = await getGitignorePatterns(absolutePath);
 
   const casingType = cli.flags.casing;
 
@@ -72,10 +76,13 @@ async function run() {
 
   {
     logger.info("Rename phase 1/2...");
-    const filePaths = await getFilesToProcess(ignorePatterns);
+    const filePaths = await getFilesToProcess(absolutePath, ignorePatterns);
+
+    console.log(take(filePaths, 100));
+
     logger.info(`Found ${filePaths.length} files to process`);
 
-    await renameFilesAndFolders(directoryPath, filePaths, "phase1", casingFn);
+    await renameFilesAndFolders(absolutePath, filePaths, "phase1", casingFn);
 
     logger.info("Commit changes");
     await commitChanges("Rename files and folders phase 1/2");
@@ -83,10 +90,10 @@ async function run() {
 
   {
     logger.info("Rename phase 2/2...");
-    const filePaths = await getFilesToProcess(ignorePatterns);
+    const filePaths = await getFilesToProcess(absolutePath, ignorePatterns);
     logger.info(`Found ${filePaths.length} files to process`);
 
-    await renameFilesAndFolders(directoryPath, filePaths, "phase2", casingFn);
+    await renameFilesAndFolders(absolutePath, filePaths, "phase2", casingFn);
 
     logger.info("Commit changes");
     await commitChanges("Rename files and folders phase 2/2");
@@ -95,7 +102,7 @@ async function run() {
   {
     logger.info("Running codemod to update import/export statements");
 
-    const filePaths = await getFilesToProcess(ignorePatterns);
+    const filePaths = await getFilesToProcess(absolutePath, ignorePatterns);
 
     await runCodemod(filePaths, casingType as "kebab" | "snake");
 
