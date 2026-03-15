@@ -30,8 +30,14 @@ describe("updateImportsAndExports", () => {
     expect(output).toContain(`"./my-module"`);
   });
 
-  it("transforms TypeScript import type", () => {
+  it("transforms type-only import declarations", () => {
     const input = `import type { MyType } from './MyTypes';`;
+    const output = transform(input);
+    expect(output).toContain(`"./my-types"`);
+  });
+
+  it("transforms TSImportType expressions", () => {
+    const input = `type Foo = import('./MyTypes').Foo;`;
     const output = transform(input);
     expect(output).toContain(`"./my-types"`);
   });
