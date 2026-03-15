@@ -47,7 +47,7 @@ const cli = meow(
         default: "info",
       },
     },
-  }
+  },
 );
 
 // Set the log level based on the CLI option
@@ -104,7 +104,7 @@ async function run() {
 
     const filePaths = await getFilesToProcess(absolutePath, ignorePatterns);
 
-    await runCodemod(filePaths, casingType as "kebab" | "snake");
+    await runCodemod(filePaths, casingType);
 
     logger.info("Commit changes");
     await commitChanges("Update import and export statements");

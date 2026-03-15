@@ -5,7 +5,7 @@ import { logger } from "./logger";
 
 export async function runCodemod(
   filePaths: string[],
-  casingType: "kebab" | "snake"
+  casingType: "kebab" | "snake",
 ) {
   logger.debug("Running codemod");
 
@@ -16,8 +16,8 @@ export async function runCodemod(
   const codemodPath = path.resolve(
     __dirname,
     casingType === "kebab"
-      ? "./codemods/convert-import-export-kebab.cjs"
-      : "./codemods/convert-import-export-snake.cjs"
+      ? "./codemods/convert-import-export-kebab.mjs"
+      : "./codemods/convert-import-export-snake.mjs",
   );
 
   logger.debug("Codemod path:", codemodPath);

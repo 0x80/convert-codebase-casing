@@ -2,46 +2,49 @@
   "name": "convert-codebase-casing",
   "version": "0.3.2",
   "description": "Convert an entire JS/TS codebase to either kebab-case or snake-case",
-  "type": "module",
+  "keywords": [
+    "camel-case",
+    "case",
+    "casing",
+    "codebase",
+    "convert",
+    "files",
+    "javascript",
+    "kebab-case",
+    "rename",
+    "snake-case",
+    "transform",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Thijs Koerselman",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0x80/convert-codebase-casing.git"
+  },
+  "bin": {
+    "convert-codebase-casing": "dist/main.mjs"
+  },
   "files": [
     "dist",
     "docs"
   ],
-  "bin": {
-    "convert-codebase-casing": "dist/main.mjs"
-  },
+  "type": "module",
   "scripts": {
-    "clean": "del-cli dist",
-    "build": "tsup-node",
-    "dev": "tsup-node --watch",
-    "test": "vitest",
-    "lint": "eslint . --max-warnings 0",
-    "prettier:format": "prettier --write .",
-    "prettier:check": "prettier --check .",
-    "compile": "tsc --noEmit",
-    "prepare": "pnpm run clean && pnpm run build"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "format": "oxfmt",
+    "lint": "oxlint -c .oxlintrc.json --type-aware",
+    "check-format": "oxfmt --check",
+    "check-types": "tsc --noEmit",
+    "prepare": "pnpm check-types && pnpm build"
   },
-  "author": "Thijs Koerselman",
-  "license": "MIT",
-  "keywords": [
-    "transform",
-    "convert",
-    "files",
-    "codebase",
-    "casing",
-    "case",
-    "rename",
-    "typescript",
-    "javascript",
-    "camel-case",
-    "kebab-case",
-    "snake-case"
-  ],
   "dependencies": {
     "fs-extra": "^11.2.0",
     "globby": "^14.0.2",
     "jscodeshift": "^0.15.2",
-    "meow": "^13.2.0",
+    "meow": "^14.0.0",
     "remeda": "^2.0.9",
     "simple-git": "^3.25.0",
     "source-map-support": "^0.5.21"
@@ -51,19 +54,22 @@
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/plugin-syntax-jsx": "^7.24.7",
     "@babel/plugin-syntax-typescript": "^7.24.7",
+    "@codecompose/typescript-config": "^3.0.0",
     "@types/babel__core": "^7.20.5",
     "@types/fs-extra": "^11.0.4",
     "@types/jscodeshift": "^0.11.11",
-    "@types/node": "^20.14.2",
+    "@types/node": "^25.2.3",
     "@types/source-map-support": "^0.5.10",
-    "del-cli": "^6.0.0",
-    "eslint": "^8",
-    "eslint-config-0x80": "^0.0.0",
-    "prettier": "^3.3.2",
-    "prettier-plugin-jsdoc": "^1.3.0",
-    "tsup": "^8.1.0",
-    "typescript": "^5.4.3",
-    "vitest": "^1.4.0"
+    "oxfmt": "^0.33.0",
+    "oxlint": "^1.48.0",
+    "oxlint-tsgolint": "^0.15.0",
+    "tsdown": "0.20.3",
+    "typescript": "6.0.0-beta",
+    "vite": "^7.0.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=22.6.0"
   },
   "packageManager": "pnpm@9.0.0+sha256.bdfc9a7b372b5c462176993e586492603e20da5864d2f8881edc2462482c76fa"
 }

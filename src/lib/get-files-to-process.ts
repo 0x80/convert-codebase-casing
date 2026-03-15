@@ -24,7 +24,7 @@ const alwaysIgnorePatterns = [
  */
 export async function getFilesToProcess(
   directory: string,
-  ignorePatterns: string[] = []
+  ignorePatterns: string[] = [],
 ): Promise<string[]> {
   /** Convert the provided directory to an absolute path */
   const absoluteDirectory = path.resolve(directory);

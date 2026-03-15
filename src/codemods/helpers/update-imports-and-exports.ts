@@ -6,7 +6,7 @@ import { logger } from "../../lib/logger";
 export default function updateImportsAndExports(
   j: JSCodeshift,
   root: ReturnType<JSCodeshift>,
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ) {
   let hasChanges = false;
 
@@ -61,7 +61,9 @@ export default function updateImportsAndExports(
 
   // Handle new URL()
   root.find(j.NewExpression, { callee: { name: "URL" } }).forEach((path) => {
-    const newSource = getUpdatedSource(j, path.node.arguments[0], casingFn);
+    const arg = path.node.arguments[0];
+    if (!arg) return;
+    const newSource = getUpdatedSource(j, arg, casingFn);
     if (newSource) {
       path.node.arguments[0] = newSource;
       hasChanges = true;
