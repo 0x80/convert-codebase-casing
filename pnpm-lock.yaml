@@ -20,15 +20,9 @@ importers:
       meow:
         specifier: ^14.0.0
         version: 14.1.0
-      remeda:
-        specifier: ^2.0.9
-        version: 2.3.0
       simple-git:
         specifier: ^3.25.0
         version: 3.25.0
-      source-map-support:
-        specifier: ^0.5.21
-        version: 0.5.21
     devDependencies:
       '@babel/core':
         specifier: ^7.24.7
@@ -57,9 +51,6 @@ importers:
       '@types/node':
         specifier: ^25.2.3
         version: 25.5.0
-      '@types/source-map-support':
-        specifier: ^0.5.10
-        version: 0.5.10
       oxfmt:
         specifier: ^0.33.0
         version: 0.33.0
@@ -1158,9 +1149,6 @@ packages:
   '@types/node@25.5.0':
     resolution: {integrity: sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==}
 
-  '@types/source-map-support@0.5.10':
-    resolution: {integrity: sha512-tgVP2H469x9zq34Z0m/fgPewGhg/MLClalNOiPIzQlXrSS2YrKu/xCdSCKnEDwkFha51VKEKB6A9wW26/ZNwzA==}
-
   '@vitest/expect@4.1.0':
     resolution: {integrity: sha512-EIxG7k4wlWweuCLG9Y5InKFwpMEOyrMb6ZJ1ihYu02LVj/bzUwn2VMU+13PinsjRW75XnITeFrQBMH5+dLvCDA==}
 
@@ -1642,9 +1630,6 @@ packages:
     resolution: {integrity: sha512-Hx/BGIbwj+Des3+xy5uAtAbdCyqK9y9wbBcDFDYanLS9JnMqf7OeF87HQwUimE87OEc72mr6tkKUKMBBL+hF9Q==}
     engines: {node: '>= 4'}
 
-  remeda@2.3.0:
-    resolution: {integrity: sha512-J9djcCyFL9D1ZGnfiNJ6MMhcUT8BmNCT+dj2SApdrTNz+CxqW1dScPVaDCopivHTShiYXh4sRSPYKMzlGrgyQw==}
-
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
 
@@ -1818,10 +1803,6 @@ packages:
 
   tslib@2.6.3:
     resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
-
-  type-fest@4.21.0:
-    resolution: {integrity: sha512-ADn2w7hVPcK6w1I0uWnM//y1rLXZhzB9mr0a3OirzclKF1Wp6VzevUmzz/NRAWunOT6E8HrnpGY7xOfc6K57fA==}
-    engines: {node: '>=16'}
 
   typescript@6.0.0-beta:
     resolution: {integrity: sha512-CldZdztDpQRLM1HC6WDQjQkQN5Ub5zRau737a1diGh3lPmb9oRsaWHk1y5iqK0o7+1bNJ0oXfEGRkAogFZBL+Q==}
@@ -2798,10 +2779,6 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/source-map-support@0.5.10':
-    dependencies:
-      source-map: 0.6.1
-
   '@vitest/expect@4.1.0':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -3304,10 +3281,6 @@ snapshots:
       tiny-invariant: 1.3.3
       tslib: 2.6.3
 
-  remeda@2.3.0:
-    dependencies:
-      type-fest: 4.21.0
-
   resolve-pkg-maps@1.0.0: {}
 
   reusify@1.0.4: {}
@@ -3514,8 +3487,6 @@ snapshots:
       - vue-tsc
 
   tslib@2.6.3: {}
-
-  type-fest@4.21.0: {}
 
   typescript@6.0.0-beta: {}
 

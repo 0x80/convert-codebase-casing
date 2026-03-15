@@ -1,8 +1,7 @@
-import path from "node:path";
 import type { JSCodeshift } from "jscodeshift";
 import type { ASTNode, StringLiteral, Literal } from "jscodeshift";
 import { targetPathPrefixes } from "../../lib/config";
-import { convertFileName, convertSegment } from "../../lib/convert-files";
+import { applyCasing, convertFileName } from "../../lib/convert-files";
 
 export function getUpdatedSource<T extends ASTNode>(
   j: JSCodeshift,
@@ -34,15 +33,14 @@ export function transformPath(
   }
 
   const pathWithoutPrefix = filePath.slice(prefix.length);
-  const segments = pathWithoutPrefix.split(path.sep);
+  const segments = pathWithoutPrefix.split("/");
   const newSegments = segments.map((segment, index) => {
-    // Apply special handling for the last segment (file name)
     if (index === segments.length - 1) {
-      return convertFileName(segment, casingFn);
+      return convertFileName(segment, casingFn, applyCasing);
     }
-    return convertSegment(segment, casingFn);
+    return applyCasing(segment, casingFn);
   });
 
-  const newPath = prefix + newSegments.join(path.sep);
+  const newPath = prefix + newSegments.join("/");
   return newPath;
 }

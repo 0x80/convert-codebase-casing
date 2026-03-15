@@ -15,18 +15,16 @@ export async function runCodemod(
   const __dirname = path.dirname(__filename);
   const codemodPath = path.resolve(
     __dirname,
-    casingType === "kebab"
-      ? "./codemods/convert-import-export-kebab.mjs"
-      : "./codemods/convert-import-export-snake.mjs",
+    "./codemods/convert-import-export.mjs",
   );
 
   logger.debug("Codemod path:", codemodPath);
 
   const result = await Runner.run(codemodPath, filePaths, {
     parser: "tsx",
-    // verbose: 1,
     extensions: codeExtensions.join(","),
     runInBand: true,
+    casingType,
   });
 
   return result;

@@ -13,7 +13,6 @@ const alwaysIgnorePatterns = [
   "Gemfile",
   "Gemfile.lock",
   "yarn.lock",
-  "package-lock.json",
   "bun.lockb",
   "bunfig.toml",
 ];

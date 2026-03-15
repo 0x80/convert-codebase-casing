@@ -3,6 +3,7 @@ import { transformPath } from "./update-source-value";
 import { getCasingFunction } from "../../lib/get-casing-function";
 
 const toKebab = getCasingFunction("kebab");
+const toSnake = getCasingFunction("snake");
 
 describe("transformPath", () => {
   describe("recognizes target prefixes", () => {
@@ -98,6 +99,30 @@ describe("transformPath", () => {
 
     it("preserves already-converted paths", () => {
       expect(transformPath("./my-component", toKebab)).toBe("./my-component");
+    });
+  });
+
+  describe("single-word PascalCase segments (no __tmp leak)", () => {
+    it("converts single-word PascalCase directory", () => {
+      expect(transformPath("./Components/Button", toKebab)).toBe(
+        "./components/button",
+      );
+    });
+
+    it("converts single-word PascalCase file", () => {
+      expect(transformPath("./Utils", toKebab)).toBe("./utils");
+    });
+
+    it("converts nested single-word PascalCase segments", () => {
+      expect(transformPath("@/Components/Hooks/Utils", toKebab)).toBe(
+        "@/components/hooks/utils",
+      );
+    });
+
+    it("works with snake_case for single-word PascalCase", () => {
+      expect(transformPath("./Components/Button", toSnake)).toBe(
+        "./components/button",
+      );
     });
   });
 });
