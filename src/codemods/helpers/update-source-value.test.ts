@@ -11,9 +11,7 @@ describe("transformPath", () => {
     });
 
     it("transforms relative ../ paths", () => {
-      expect(transformPath("../MyComponent", toKebab)).toBe(
-        "../my-component",
-      );
+      expect(transformPath("../MyComponent", toKebab)).toBe("../my-component");
     });
 
     it("transforms ~/ paths", () => {
@@ -77,23 +75,21 @@ describe("transformPath", () => {
     });
 
     it("preserves prefix in output", () => {
-      expect(transformPath("../MyComponent", toKebab)).toBe(
-        "../my-component",
-      );
+      expect(transformPath("../MyComponent", toKebab)).toBe("../my-component");
     });
   });
 
   describe("handles complex paths", () => {
     it("converts nested relative paths", () => {
-      expect(
-        transformPath("../../components/MyComponent", toKebab),
-      ).toBe("../../components/my-component");
+      expect(transformPath("../../components/MyComponent", toKebab)).toBe(
+        "../../components/my-component",
+      );
     });
 
     it("converts multiple path segments", () => {
-      expect(
-        transformPath("./uiElements/ButtonGroup", toKebab),
-      ).toBe("./ui-elements/button-group");
+      expect(transformPath("./uiElements/ButtonGroup", toKebab)).toBe(
+        "./ui-elements/button-group",
+      );
     });
 
     it("handles file with no extension in import", () => {
@@ -101,9 +97,7 @@ describe("transformPath", () => {
     });
 
     it("preserves already-converted paths", () => {
-      expect(transformPath("./my-component", toKebab)).toBe(
-        "./my-component",
-      );
+      expect(transformPath("./my-component", toKebab)).toBe("./my-component");
     });
   });
 });
