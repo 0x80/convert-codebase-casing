@@ -23,7 +23,7 @@ export function getUpdatedSource<T extends ASTNode>(
   return null;
 }
 
-function transformPath(
+export function transformPath(
   filePath: string,
   casingFn: (str: string) => string,
 ): string {
