@@ -58,7 +58,7 @@ async function removeEmptyDirectories(
   }
 }
 
-function getNewPathPhaseOne(
+export function getNewPathPhaseOne(
   filePath: string,
   casingFn: (str: string) => string,
 ): string {
@@ -122,7 +122,7 @@ export function convertSegment(
   }
 }
 
-function getNewPathPhaseTwo(filePath: string): string {
+export function getNewPathPhaseTwo(filePath: string): string {
   const segments = filePath.split(path.sep);
 
   const newSegments = segments.map((segment, index) => {
