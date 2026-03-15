@@ -8,7 +8,7 @@ export async function renameFilesAndFolders(
   directoryPath: string,
   paths: string[],
   phase: "phase1" | "phase2",
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ) {
   const renamedPaths = new Set<string>();
 
@@ -23,7 +23,7 @@ export async function renameFilesAndFolders(
     if (newPath !== oldPath) {
       await moveFile(
         path.join(directoryPath, oldPath),
-        path.join(directoryPath, newPath)
+        path.join(directoryPath, newPath),
       );
       renamedPaths.add(path.dirname(oldPath)); // Add the old directory path
     }
@@ -35,10 +35,10 @@ export async function renameFilesAndFolders(
 
 async function removeEmptyDirectories(
   baseDirectory: string,
-  renamedPaths: Set<string>
+  renamedPaths: Set<string>,
 ) {
   const sortedPaths = Array.from(renamedPaths).sort(
-    (a, b) => b.length - a.length
+    (a, b) => b.length - a.length,
   );
 
   for (const relativePath of sortedPaths) {
@@ -51,14 +51,16 @@ async function removeEmptyDirectories(
         logger.debug(`Removed empty directory: ${relativePath}`);
       }
     } catch (error) {
-      logger.error(`Error processing directory ${relativePath}: ${error}`);
+      logger.error(
+        `Error processing directory ${relativePath}: ${String(error)}`,
+      );
     }
   }
 }
 
 function getNewPathPhaseOne(
   filePath: string,
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ): string {
   const segments = filePath.split(path.sep);
   const newSegments = segments.map((segment, index) => {
@@ -73,7 +75,7 @@ function getNewPathPhaseOne(
 
 export function convertFileName(
   fileName: string,
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ): string {
   const ext = path.extname(fileName);
   const baseName = path.basename(fileName, ext);
@@ -93,7 +95,7 @@ export function convertFileName(
 
 export function convertSegment(
   segment: string,
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ): string {
   /** Preserve Next.js route parameters */
   if (segment.startsWith("[")) {
@@ -133,7 +135,7 @@ function getNewPathPhaseTwo(filePath: string): string {
           .slice(0, -TEMP_SUFFIX.length)
           .toLowerCase();
         logger.debug(
-          `Phase 2 conversion: ${baseName}${ext} -> ${newBaseName}${ext}`
+          `Phase 2 conversion: ${baseName}${ext} -> ${newBaseName}${ext}`,
         );
         return newBaseName + ext;
       }
@@ -157,7 +159,7 @@ async function moveFile(oldPath: string, newPath: string) {
     logger.debug(`Moved: ${oldPath} -> ${newPath}`);
   } catch (error) {
     logger.error(
-      `Failed to move file: ${oldPath} -> ${newPath}. Error: ${error}`
+      `Failed to move file: ${oldPath} -> ${newPath}. Error: ${String(error)}`,
     );
   }
 }

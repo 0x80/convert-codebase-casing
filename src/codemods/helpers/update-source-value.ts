@@ -7,7 +7,7 @@ import { convertFileName, convertSegment } from "../../lib/convert-files";
 export function getUpdatedSource<T extends ASTNode>(
   j: JSCodeshift,
   source: T,
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ): StringLiteral | Literal | null {
   if ("value" in source && typeof source.value === "string") {
     const newValue = transformPath(source.value, casingFn);
@@ -25,7 +25,7 @@ export function getUpdatedSource<T extends ASTNode>(
 
 function transformPath(
   filePath: string,
-  casingFn: (str: string) => string
+  casingFn: (str: string) => string,
 ): string {
   const prefix = targetPathPrefixes.find((p) => filePath.startsWith(p));
 

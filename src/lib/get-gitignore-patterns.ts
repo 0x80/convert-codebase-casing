@@ -4,7 +4,7 @@ import { logger } from "./logger";
 
 /** Get patterns from .gitignore file in either CWD or specified directory */
 export async function getGitignorePatterns(
-  directoryPath: string
+  directoryPath: string,
 ): Promise<string[]> {
   const cwdGitignorePath = path.join(process.cwd(), ".gitignore");
   const directoryGitignorePath = path.join(directoryPath, ".gitignore");
@@ -18,7 +18,7 @@ export async function getGitignorePatterns(
     /** .gitignore found in the specified directory */
   } else {
     logger.info(
-      ".gitignore file not found in both CWD and specified directory."
+      ".gitignore file not found in both CWD and specified directory.",
     );
     return [];
   }
