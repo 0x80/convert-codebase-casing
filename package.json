@@ -26,8 +26,7 @@
     "convert-codebase-casing": "dist/main.mjs"
   },
   "files": [
-    "dist",
-    "docs"
+    "dist"
   ],
   "type": "module",
   "scripts": {
@@ -38,7 +37,10 @@
     "lint": "oxlint -c .oxlintrc.json --type-aware",
     "check-format": "oxfmt --check",
     "check-types": "tsc --noEmit",
-    "prepare": "pnpm check-types && pnpm build"
+    "prepare": "pnpm check-types && pnpm build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "fs-extra": "^11.2.0",
@@ -63,6 +65,7 @@
     "tsdown": "0.20.3",
     "typescript": "6.0.0-beta",
     "vite": "^7.0.0",
+    "vitepress": "^1.6.4",
     "vitest": "^4.0.18"
   },
   "engines": {
