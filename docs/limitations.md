@@ -11,9 +11,9 @@ const Lightbox = dynamic(() => import("~/components/Universal/Lightbox"), {
 ```
 
 ```ts
-await fetch(
-  new URL("./assets/fonts/Figtree-Medium.ttf", import.meta.url),
-).then((res) => res.arrayBuffer());
+await fetch(new URL("./assets/fonts/Figtree-Medium.ttf", import.meta.url)).then(
+  (res) => res.arrayBuffer(),
+);
 ```
 
 These cases will need to be updated manually after conversion.

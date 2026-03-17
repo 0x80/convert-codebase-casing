@@ -4,25 +4,25 @@ The codemod only transforms import paths that start with a recognized prefix. Th
 
 ## Recognized prefixes
 
-| Prefix   | Description                           |
-| -------- | ------------------------------------- |
-| `./`     | Relative path (same directory)        |
-| `../`    | Relative path (parent directory)      |
-| `~/`     | Common alias for project root         |
-| `@/`     | Common alias for source directory     |
-| `@src`   | Source directory alias                 |
-| `@repo`  | Monorepo package alias                |
-| `@mono`  | Monorepo package alias                |
-| `#`      | Node.js subpath imports               |
+| Prefix  | Description                       |
+| ------- | --------------------------------- |
+| `./`    | Relative path (same directory)    |
+| `../`   | Relative path (parent directory)  |
+| `~/`    | Common alias for project root     |
+| `@/`    | Common alias for source directory |
+| `@src`  | Source directory alias            |
+| `@repo` | Monorepo package alias            |
+| `@mono` | Monorepo package alias            |
+| `#`     | Node.js subpath imports           |
 
 ## What is not transformed
 
 Any import path that does not start with one of the above prefixes is considered an external package and is left unchanged:
 
 ```ts
-import React from "react";              // unchanged
-import _ from "lodash";                  // unchanged
-import type { FC } from "react";         // unchanged
+import React from "react"; // unchanged
+import _ from "lodash"; // unchanged
+import type { FC } from "react"; // unchanged
 import { z } from "@hono/zod-validator"; // unchanged
 ```
 
