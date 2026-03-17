@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  applyCasing,
   convertFileName,
   convertSegment,
   getNewPathPhaseOne,
@@ -52,6 +53,24 @@ describe("convertFileName", () => {
     expect(convertFileName("my-component.tsx", toKebab)).toBe(
       "my-component.tsx",
     );
+  });
+});
+
+describe("applyCasing", () => {
+  it("converts camelCase segment without __tmp", () => {
+    expect(applyCasing("myComponent", toKebab)).toBe("my-component");
+  });
+
+  it("converts single-word PascalCase without __tmp", () => {
+    expect(applyCasing("Components", toKebab)).toBe("components");
+  });
+
+  it("preserves brackets", () => {
+    expect(applyCasing("[id]", toKebab)).toBe("[id]");
+  });
+
+  it("preserves underscore-prefixed segments", () => {
+    expect(applyCasing("_components", toKebab)).toBe("_components");
   });
 });
 

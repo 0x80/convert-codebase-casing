@@ -23,8 +23,9 @@ export async function getGitignorePatterns(
     return [];
   }
 
-  return fs
-    .readFileSync(gitignorePath, "utf-8")
+  const content = await fs.readFile(gitignorePath, "utf-8");
+
+  return content
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("#"));

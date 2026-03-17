@@ -1,6 +1,9 @@
-import type { JSCodeshift, StringLiteral } from "jscodeshift";
+import type {
+  ArrowFunctionExpression,
+  JSCodeshift,
+  StringLiteral,
+} from "jscodeshift";
 import { getUpdatedSource } from "./update-source-value";
-import type { TODO } from "../../lib/types";
 import { logger } from "../../lib/logger";
 
 export default function updateImportsAndExports(
@@ -41,8 +44,7 @@ export default function updateImportsAndExports(
   root.find(j.TSImportType).forEach((path) => {
     const newSource = getUpdatedSource(j, path.node.argument, casingFn);
     if (newSource) {
-      // @ts-expect-error dunno
-      path.node.argument = newSource;
+      path.node.argument = newSource as StringLiteral;
       hasChanges = true;
     }
   });
@@ -95,7 +97,10 @@ export default function updateImportsAndExports(
 
           const newSource = getUpdatedSource(j, firstArg.body.source, casingFn);
           if (newSource) {
-            (path.node.arguments[0] as TODO).body.source = newSource;
+            (
+              (path.node.arguments[0] as ArrowFunctionExpression)
+                .body as import("jscodeshift").ImportExpression
+            ).source = newSource;
             hasChanges = true;
           }
         }

@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 import meow from "meow";
 import path from "path";
-import { take } from "remeda";
-import sourceMaps from "source-map-support";
 import { commitChanges } from "./lib/commit-changes";
 import { renameFilesAndFolders } from "./lib/convert-files";
 import { getCasingFunction } from "./lib/get-casing-function";
@@ -10,8 +8,6 @@ import { getFilesToProcess } from "./lib/get-files-to-process";
 import { getGitignorePatterns } from "./lib/get-gitignore-patterns";
 import { logger } from "./lib/logger";
 import { runCodemod } from "./lib/run-codemod";
-
-sourceMaps.install();
 
 const cli = meow(
   `
@@ -65,20 +61,13 @@ async function run() {
 
   const ignorePatterns = await getGitignorePatterns(absolutePath);
 
-  const casingType = cli.flags.casing;
-
-  if (casingType !== "kebab" && casingType !== "snake") {
-    logger.error("Error: Invalid casing type. Use 'kebab' or 'snake'.");
-    process.exit(1);
-  }
+  const casingType = cli.flags.casing as "kebab" | "snake";
 
   const casingFn = getCasingFunction(casingType);
 
   {
     logger.info("Rename phase 1/2...");
     const filePaths = await getFilesToProcess(absolutePath, ignorePatterns);
-
-    console.log(take(filePaths, 100));
 
     logger.info(`Found ${filePaths.length} files to process`);
 

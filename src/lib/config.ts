@@ -5,7 +5,6 @@ export const targetPathPrefixes = [
   "~/",
   "@/",
   "@src",
-  "@bm", // remove later
   "@repo",
   "@mono",
   "#",

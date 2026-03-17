@@ -76,6 +76,10 @@ export function getNewPathPhaseOne(
 export function convertFileName(
   fileName: string,
   casingFn: (str: string) => string,
+  segmentConverter: (
+    segment: string,
+    casingFn: (str: string) => string,
+  ) => string = convertSegment,
 ): string {
   const ext = path.extname(fileName);
   const baseName = path.basename(fileName, ext);
@@ -89,11 +93,12 @@ export function convertFileName(
     return fileName;
   }
 
-  const convertedBaseName = convertSegment(baseName, casingFn);
+  const convertedBaseName = segmentConverter(baseName, casingFn);
   return convertedBaseName + ext;
 }
 
-export function convertSegment(
+/** Pure casing conversion with guard logic for brackets and underscore prefixes. */
+export function applyCasing(
   segment: string,
   casingFn: (str: string) => string,
 ): string {
@@ -107,17 +112,21 @@ export function convertSegment(
     return segment;
   }
 
-  const converted = casingFn(segment);
+  return casingFn(segment);
+}
+
+export function convertSegment(
+  segment: string,
+  casingFn: (str: string) => string,
+): string {
+  const converted = applyCasing(segment, casingFn);
 
   if (converted === segment) {
-    // If the conversion didn't change anything, return as is
     return converted;
   } else if (converted.toLowerCase() === segment.toLowerCase()) {
-    // If they're the same when lowercased, but different in original form,
-    // add the temp suffix
+    // Only casing differs — add temp suffix for case-insensitive filesystem rename
     return converted + TEMP_SUFFIX;
   } else {
-    // If they're different even when lowercased, return the converted version
     return converted;
   }
 }
