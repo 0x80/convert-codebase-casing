@@ -16,7 +16,7 @@ hero:
 features:
   - icon: <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m10 15-2 2 2 2"/><path d="m14 15 2 2-2 2"/></svg>
     title: File & Folder Renaming
-    details: Converts all files and folders including assets, while preserving special files like _app.tsx, README.md, and route parameters.
+    details: Converts all files and folders including assets, while preserving special files like \_app.tsx, README.md, and route parameters.
   - icon: <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
     title: Import/Export Updates
     details: Automatically updates import, export, require(), dynamic import(), and new URL() statements using AST transforms.
