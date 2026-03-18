@@ -69,7 +69,7 @@
     "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=22.6.0"
+    "node": ">=22.12.0"
   },
   "packageManager": "pnpm@9.0.0+sha256.bdfc9a7b372b5c462176993e586492603e20da5864d2f8881edc2462482c76fa"
 }
