@@ -1,9 +1,3 @@
 {
-  "extends": "@codecompose/typescript-config/library",
-  "compilerOptions": {
-    "baseUrl": null,
-    "paths": {
-      "~/*": ["./src/*"]
-    }
-  }
+  "extends": "@codecompose/typescript-config/library"
 }
