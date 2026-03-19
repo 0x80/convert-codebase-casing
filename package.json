@@ -34,7 +34,7 @@
     "dev": "tsdown --watch",
     "test": "vitest run",
     "format": "oxfmt",
-    "lint": "oxlint -c .oxlintrc.json --type-aware",
+    "check-lint": "oxlint -c .oxlintrc.json --type-aware",
     "check-format": "oxfmt --check",
     "check-types": "tsc --noEmit",
     "prepare": "pnpm check-types && pnpm build",
